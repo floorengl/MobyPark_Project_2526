@@ -1,0 +1,2 @@
+GET http://localhost:8000/parking-lots/
+Content-Type: application/json
