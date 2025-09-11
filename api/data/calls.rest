@@ -1,0 +1,52 @@
+GET http://localhost:8000/parking-lots/
+Content-Type: application/json
+
+###
+
+GET http://localhost:8000/reservations/
+Content-Type: application/json
+
+
+###
+//non registerd user
+
+POST http://localhost:8000/register
+Content-Type: application/json
+
+{
+  "username": "newuser123",
+  "password": "SecretPass!23"
+}
+
+###
+//registerd user
+
+POST http://localhost:8000/register
+Content-Type: application/json
+
+{
+  "username": "cindy.leenders42",
+  "password": "6b37d1ec969838d29cb611deaff50a6b"
+}
+
+###
+//non registerd user login
+
+POST http://localhost:8000/login
+Content-Type: application/json
+
+{
+  "username": "newuser123",
+  "password": "SecretPass!23"
+}
+
+###
+//registerd user login
+
+POST http://localhost:8000/login
+Content-Type: application/json
+
+{
+  "username": "cindy.leenders42",
+  "password": "6b37d1ec969838d29cb611deaff50a6b"
+}
