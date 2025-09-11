@@ -1,2 +1,21 @@
+POST http://localhost:8000/register
+Content-Type: application/json
+
+{
+    "username": "Ben-Dover",
+    "password": "b",
+    "name": "Ben Dover"
+}
+###
+POST http://localhost:8000/login
+Content-Type: application/json
+
+{
+    "username": "Ben-Dover",
+    "password": "b"
+}
+
+
+###
 GET http://localhost:8000/parking-lots/
 Content-Type: application/json
