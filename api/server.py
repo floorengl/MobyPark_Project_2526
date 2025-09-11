@@ -48,7 +48,9 @@ class RequestHandler(BaseHTTPRequestHandler):
             hashed_password = hashlib.md5(password.encode()).hexdigest()
             users = load_json('data/users.json')
             for user in users:
-                if user.get("username") == username and user.get("password") == hashed_password:
+                if user.get("username") != username:
+                    continue
+                if user.get("password") == hashed_password:
                     token = str(uuid.uuid4())
                     add_session(token, user)
                     self.send_response(200)
