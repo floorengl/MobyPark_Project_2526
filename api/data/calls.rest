@@ -1,11 +1,5 @@
-GET http://localhost:8000/parking-lots/
-Content-Type: application/json
-
-###
-
-GET http://localhost:8000/reservations/
-Content-Type: application/json
-
+@session_token = {{login.response.body.session_token}}
+@host = http://localhost:8000
 
 ###
 //non registerd user
@@ -30,7 +24,7 @@ Content-Type: application/json
 
 ###
 //non registerd user login
-
+# @name login
 POST http://localhost:8000/login
 Content-Type: application/json
 
@@ -38,7 +32,6 @@ Content-Type: application/json
   "username": "newuser123",
   "password": "SecretPass!23"
 }
-
 ###
 // non existing user
 POST http://localhost:8000/login
@@ -61,5 +54,73 @@ Content-Type: application/json
 }
 
 ###
+// Only possible when logged in as admin
 POST http://localhost:8000/parking-lots/
 Content-Type: application/json
+Authorization: {{session_token}}
+
+###
+// Empty request shold not cause server to throw an error
+POST http://localhost:8000/parking-lots/1/sessions/start
+Content-Type: application/json
+Authorization: {{session_token}}
+
+###
+
+POST http://localhost:8000/parking-lots/1/sessions/start
+Authorization: {{session_token}}
+Content-Type: application/json
+
+{
+  "licenseplate": "AA-11-AAA"
+}
+
+###
+POST http://localhost:8000/parking-lots/1/sessions/stop
+Content-Type: application/json
+Authorization: {{session_token}}
+
+{
+  "licenseplate": "AA-11-AAA"
+}
+###
+POST {{host}}/reservations
+Content-Type: application/json
+Authorization: {{session_token}}
+
+{
+  "licenseplate": "BB-2222-BB",
+  "startdate": "21-12-2025 10:00:30",
+  "enddate": "21-12-2025 10:30:30",
+  "parkinglot": 4
+}
+
+###
+POST {{host}}/vehicles/
+Content-Type: application/json
+Authorization: {{session_token}}
+
+{
+"name": "newuser123",
+"license_plate": "124-UUUU-4235"
+}
+
+###
+// admin exclusive give a negative amount of money to someone
+POST {{host}}/payments/refund
+Content-Type: application/json
+Authorization: {{session_token}}
+
+{
+ "amount": 10.5
+}
+
+###
+POST {{host}}/payments
+Content-Type: application/json
+Authorization: {{session_token}}
+
+{
+  "transaction": "what is this field for?",
+ "amount": 10.5
+}
