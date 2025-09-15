@@ -124,3 +124,8 @@ Authorization: {{session_token}}
   "transaction": "what is this field for?",
  "amount": 10.5
 }
+
+###
+GET {{host}}/profile
+Content-Type: application/json
+Authorization: {{session_token}}
