@@ -27,8 +27,8 @@ POST http://localhost:8000/register
 Content-Type: application/json
 
 {
-  "username": "cindy.leenders42",
-  "password": "6b37d1ec969838d29cb611deaff50a6b"
+  "username": "gijsdegraaf",
+  "password": "SecretPass!23"
 }
 
 ###
@@ -49,6 +49,17 @@ Content-Type: application/json
 
 {
   "username": "newadmin123",
+  "password": "SecretPass!23"
+}
+
+###
+//non registerd user login
+# @name login
+POST http://localhost:8000/login
+Content-Type: application/json
+
+{
+  "username": "lotte1994",
   "password": "SecretPass!23"
 }
 
@@ -156,3 +167,7 @@ GET {{host}}/payments/
 Content-Type: application/json
 Authorization: {{session_token}}
 
+###
+GET {{host}}/billing
+Content-Type: application/json
+Authorization: {{session_token}}
