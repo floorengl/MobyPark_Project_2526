@@ -124,3 +124,76 @@ Authorization: {{session_token}}
   "transaction": "what is this field for?",
  "amount": 10.5
 }
+
+// PUT START HERE ====================================================================================
+
+###
+// requires admin login
+PUT {{host}}/parking-lots/1
+Content-Type: application/application/json
+Authorization: {{session_token}}
+
+{
+
+}
+
+###
+PUT {{host}}/profile
+Content-Type: application/application/json
+Authorization: {{session_token}}
+
+{
+  "name": "Jonathan Doedrich",
+  "password": "It's me!"
+}
+###
+PUT {{host}}/profile
+Content-Type: application/application/json
+Authorization: {{session_token}}
+
+{
+  "username": "newuser123",
+  "name": "Friedrich der Kleine"
+}
+
+###
+PUT {{host}}/profile
+Content-Type: application/application/json
+Authorization: {{session_token}}
+
+{
+  "username": "newuser123",
+  "name": "Friedrich der Kleine"
+}
+
+###
+// call shouldn't work because the reservation is under a different name
+PUT {{host}}/reservations/1
+Content-Type: application/application/json
+Authorization: {{session_token}}
+
+{
+  "licenseplate":"UREGIUHEG",
+  "start_time": "2025-08-18T21:30:00Z",
+  "end_time": "2025-08-19T06:30:00Z",
+  "parkinglot": "4"
+}
+
+###
+//
+PUT {{host}}/vehicles/1
+Content-Type: application/application/json
+Authorization: {{session_token}}
+
+{
+  "name": "newuser123"
+}
+###
+PUT {{host}}/payments/1
+Content-Type: application/json
+Authorization:{{session_token}}
+
+{
+  "t_data":"UUU",
+  "validation": "III"
+}

@@ -375,8 +375,8 @@ class RequestHandler(BaseHTTPRequestHandler):
             session_user = get_session(token)
             data  = json.loads(self.rfile.read(int(self.headers.get("Content-Length", -1))))
             data["username"] = session_user["username"]
-            if data["password"]:
-                data["password"] = hashlib.md5(data["password"].encode()).hexdigest()
+            if data["password"]: # if no pw is providede this trows an error
+                data["password"] = hashlib.md5(data["password"].encode()).hexdigest() #sending pw unencripted seems dangerous. Man in the middle attacks
             save_user_data(data)
             self.send_response(200)
             self.send_header("Content-type", "application/json")
@@ -389,7 +389,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             reservations = load_reservation_data()
             rid = self.path.replace("/reservations/", "")
             if rid:
-                if rid in reservations:
+                if rid in reservations: #This check apears to be incorrect.
                     token = self.headers.get('Authorization')
                     if not token or not get_session(token):
                         self.send_response(401)
