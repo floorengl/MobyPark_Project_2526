@@ -197,3 +197,23 @@ Authorization:{{session_token}}
   "t_data":"UUU",
   "validation": "III"
 }
+
+// DELETE START HERE ====================================================================================
+###
+// Must be done as admin
+DELETE {{host}}/parking-lots/6
+Authorization:{{session_token}}
+
+###
+// Must be done as admin
+DELETE {{host}}/parking-lots/8/sessions/1
+Authorization:{{session_token}}
+
+###
+// Must be done as admin OR reservation's holder name must be the same name as the current session.
+DELETE {{host}}/reservations/2
+Authorization:{{session_token}}
+
+###
+DELETE {{host}}/vehicles/0
+Authorization: {{session_token}}
