@@ -154,6 +154,11 @@ GET {{host}}/parking-lots/1
 Content-Type: application/json
 
 ###
-GET {{host}}/parking-lots/1/session 
+GET {{host}}/parking-lots/1/sessions
+Content-Type: application/json
+Authorization: {{session_token}}
+
+###
+GET {{host}}/parking-lots/1/sessions/2
 Content-Type: application/json
 Authorization: {{session_token}}
