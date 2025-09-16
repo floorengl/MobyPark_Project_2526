@@ -22,6 +22,16 @@ Content-Type: application/json
   "role": "ADMIN"
 }
 ###
+
+POST http://localhost:8000/register
+Content-Type: application/json
+
+{
+  "username": "adminMan!",
+  "password": "SecretPass!23"
+}
+
+###
 //registerd user
 POST http://localhost:8000/register
 Content-Type: application/json
@@ -152,7 +162,39 @@ Content-Type: application/json
 Authorization: {{session_token}}
 
 ###
-GET {{host}}/payments/
+GET {{host}}/logout
 Content-Type: application/json
 Authorization: {{session_token}}
 
+###
+GET {{host}}/parking-lots/
+Content-Type: application/json
+
+###
+GET {{host}}/parking-lots/1
+Content-Type: application/json
+
+###
+GET {{host}}/parking-lots/1/sessions
+Content-Type: application/json
+Authorization: {{session_token}}
+
+###
+GET {{host}}/parking-lots/1/sessions/2
+Content-Type: application/json
+Authorization: {{session_token}}
+
+###
+GET {{host}}/reservations/1
+Content-Type: application/json
+Authorization: {{session_token}}
+
+###
+GET {{host}}/payments
+Content-Type: application/json
+Authorization: {{session_token}}
+
+###
+GET {{host}}/payments/
+Content-Type: application/json
+Authorization: {{session_token}}
