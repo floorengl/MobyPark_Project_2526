@@ -11,7 +11,16 @@ Content-Type: application/json
   "username": "newuser123",
   "password": "SecretPass!23"
 }
+###
+//register admin
+POST http://localhost:8000/register
+Content-Type: application/json
 
+{
+  "username": "newadmin123",
+  "password": "SecretPass!23",
+  "role": "ADMIN"
+}
 ###
 
 POST http://localhost:8000/register
@@ -42,6 +51,18 @@ Content-Type: application/json
   "username": "newuser123",
   "password": "SecretPass!23"
 }
+###
+//non registerd admin login
+# @name login
+POST http://localhost:8000/login
+Content-Type: application/json
+
+{
+  "username": "newadmin123",
+  "password": "SecretPass!23"
+}
+
+
 ###
 // non existing user
 POST http://localhost:8000/login
@@ -170,5 +191,10 @@ Authorization: {{session_token}}
 
 ###
 GET {{host}}/payments
+Content-Type: application/json
+Authorization: {{session_token}}
+
+###
+GET {{host}}/payments/
 Content-Type: application/json
 Authorization: {{session_token}}
