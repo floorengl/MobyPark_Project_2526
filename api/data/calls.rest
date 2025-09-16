@@ -162,3 +162,13 @@ Authorization: {{session_token}}
 GET {{host}}/parking-lots/1/sessions/2
 Content-Type: application/json
 Authorization: {{session_token}}
+
+###
+GET {{host}}/reservations/1
+Content-Type: application/json
+Authorization: {{session_token}}
+
+###
+GET {{host}}/payments
+Content-Type: application/json
+Authorization: {{session_token}}
