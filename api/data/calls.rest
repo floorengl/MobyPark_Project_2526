@@ -11,6 +11,25 @@ Content-Type: application/json
   "username": "newuser123",
   "password": "SecretPass!23"
 }
+###
+//register admin
+POST http://localhost:8000/register
+Content-Type: application/json
+
+{
+  "username": "newadmin123",
+  "password": "SecretPass!23",
+  "role": "ADMIN"
+}
+###
+
+POST http://localhost:8000/register
+Content-Type: application/json
+
+{
+  "username": "adminMan!",
+  "password": "SecretPass!23"
+}
 
 ###
 //registerd user
@@ -32,6 +51,18 @@ Content-Type: application/json
   "username": "newuser123",
   "password": "SecretPass!23"
 }
+###
+//non registerd admin login
+# @name login
+POST http://localhost:8000/login
+Content-Type: application/json
+
+{
+  "username": "newadmin123",
+  "password": "SecretPass!23"
+}
+
+
 ###
 // non existing user
 POST http://localhost:8000/login
@@ -124,6 +155,49 @@ Authorization: {{session_token}}
   "transaction": "what is this field for?",
  "amount": 10.5
 }
+
+###
+GET {{host}}/profile
+Content-Type: application/json
+Authorization: {{session_token}}
+
+###
+GET {{host}}/logout
+Content-Type: application/json
+Authorization: {{session_token}}
+
+###
+GET {{host}}/parking-lots/
+Content-Type: application/json
+
+###
+GET {{host}}/parking-lots/1
+Content-Type: application/json
+
+###
+GET {{host}}/parking-lots/1/sessions
+Content-Type: application/json
+Authorization: {{session_token}}
+
+###
+GET {{host}}/parking-lots/1/sessions/2
+Content-Type: application/json
+Authorization: {{session_token}}
+
+###
+GET {{host}}/reservations/1
+Content-Type: application/json
+Authorization: {{session_token}}
+
+###
+GET {{host}}/payments
+Content-Type: application/json
+Authorization: {{session_token}}
+
+###
+GET {{host}}/payments/
+Content-Type: application/json
+Authorization: {{session_token}}
 
 // PUT START HERE ====================================================================================
 
