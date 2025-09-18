@@ -199,6 +199,26 @@ GET {{host}}/payments/
 Content-Type: application/json
 Authorization: {{session_token}}
 
+###
+GET {{host}}/profile
+Content-Type: application/json
+Authorization: {{session_token}}
+
+###
+GET {{host}}/payments/
+Content-Type: application/json
+Authorization: {{session_token}}
+
+###
+GET {{host}}/billing
+Content-Type: application/json
+Authorization: {{session_token}}
+
+###
+GET {{host}}/vehicles
+Content-Type: application/json
+Authorization: {{session_token}}
+
 // PUT START HERE ====================================================================================
 
 ###
