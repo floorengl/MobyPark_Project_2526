@@ -11,6 +11,25 @@ Content-Type: application/json
   "username": "newuser123",
   "password": "SecretPass!23"
 }
+###
+//register admin
+POST http://localhost:8000/register
+Content-Type: application/json
+
+{
+  "username": "newadmin123",
+  "password": "SecretPass!23",
+  "role": "ADMIN"
+}
+###
+
+POST http://localhost:8000/register
+Content-Type: application/json
+
+{
+  "username": "adminMan!",
+  "password": "SecretPass!23"
+}
 
 ###
 //registerd user
@@ -32,6 +51,18 @@ Content-Type: application/json
   "username": "newuser123",
   "password": "SecretPass!23"
 }
+###
+//non registerd admin login
+# @name login
+POST http://localhost:8000/login
+Content-Type: application/json
+
+{
+  "username": "newadmin123",
+  "password": "SecretPass!23"
+}
+
+
 ###
 // non existing user
 POST http://localhost:8000/login
@@ -124,3 +155,159 @@ Authorization: {{session_token}}
   "transaction": "what is this field for?",
  "amount": 10.5
 }
+
+###
+GET {{host}}/profile
+Content-Type: application/json
+Authorization: {{session_token}}
+
+###
+GET {{host}}/logout
+Content-Type: application/json
+Authorization: {{session_token}}
+
+###
+GET {{host}}/parking-lots/
+Content-Type: application/json
+
+###
+GET {{host}}/parking-lots/1
+Content-Type: application/json
+
+###
+GET {{host}}/parking-lots/1/sessions
+Content-Type: application/json
+Authorization: {{session_token}}
+
+###
+GET {{host}}/parking-lots/1/sessions/2
+Content-Type: application/json
+Authorization: {{session_token}}
+
+###
+GET {{host}}/reservations/1
+Content-Type: application/json
+Authorization: {{session_token}}
+
+###
+GET {{host}}/payments
+Content-Type: application/json
+Authorization: {{session_token}}
+
+###
+GET {{host}}/payments/
+Content-Type: application/json
+Authorization: {{session_token}}
+
+###
+GET {{host}}/profile
+Content-Type: application/json
+Authorization: {{session_token}}
+
+###
+GET {{host}}/payments/
+Content-Type: application/json
+Authorization: {{session_token}}
+
+###
+GET {{host}}/billing
+Content-Type: application/json
+Authorization: {{session_token}}
+
+###
+GET {{host}}/vehicles
+Content-Type: application/json
+Authorization: {{session_token}}
+
+// PUT START HERE ====================================================================================
+
+###
+// requires admin login
+PUT {{host}}/parking-lots/1
+Content-Type: application/application/json
+Authorization: {{session_token}}
+
+{
+
+}
+
+###
+PUT {{host}}/profile
+Content-Type: application/application/json
+Authorization: {{session_token}}
+
+{
+  "name": "Jonathan Doedrich",
+  "password": "It's me!"
+}
+###
+PUT {{host}}/profile
+Content-Type: application/application/json
+Authorization: {{session_token}}
+
+{
+  "username": "newuser123",
+  "name": "Friedrich der Kleine"
+}
+
+###
+PUT {{host}}/profile
+Content-Type: application/application/json
+Authorization: {{session_token}}
+
+{
+  "username": "newuser123",
+  "name": "Friedrich der Kleine"
+}
+
+###
+// call shouldn't work because the reservation is under a different name
+PUT {{host}}/reservations/1
+Content-Type: application/application/json
+Authorization: {{session_token}}
+
+{
+  "licenseplate":"UREGIUHEG",
+  "start_time": "2025-08-18T21:30:00Z",
+  "end_time": "2025-08-19T06:30:00Z",
+  "parkinglot": "4"
+}
+
+###
+//
+PUT {{host}}/vehicles/1
+Content-Type: application/application/json
+Authorization: {{session_token}}
+
+{
+  "name": "newuser123"
+}
+###
+PUT {{host}}/payments/1
+Content-Type: application/json
+Authorization:{{session_token}}
+
+{
+  "t_data":"UUU",
+  "validation": "III"
+}
+
+// DELETE START HERE ====================================================================================
+###
+// Must be done as admin
+DELETE {{host}}/parking-lots/6
+Authorization:{{session_token}}
+
+###
+// Must be done as admin
+DELETE {{host}}/parking-lots/8/sessions/1
+Authorization:{{session_token}}
+
+###
+// Must be done as admin OR reservation's holder name must be the same name as the current session.
+DELETE {{host}}/reservations/2
+Authorization:{{session_token}}
+
+###
+DELETE {{host}}/vehicles/0
+Authorization: {{session_token}}

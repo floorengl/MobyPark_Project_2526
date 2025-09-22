@@ -375,8 +375,8 @@ class RequestHandler(BaseHTTPRequestHandler):
             session_user = get_session(token)
             data  = json.loads(self.rfile.read(int(self.headers.get("Content-Length", -1))))
             data["username"] = session_user["username"]
-            if data["password"]:
-                data["password"] = hashlib.md5(data["password"].encode()).hexdigest()
+            if data["password"]: # if no pw is providede this trows an error
+                data["password"] = hashlib.md5(data["password"].encode()).hexdigest() #sending pw unencripted seems dangerous. Man in the middle attacks
             save_user_data(data)
             self.send_response(200)
             self.send_header("Content-type", "application/json")
@@ -389,7 +389,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             reservations = load_reservation_data()
             rid = self.path.replace("/reservations/", "")
             if rid:
-                if rid in reservations:
+                if rid in reservations: #This check apears to be incorrect.
                     token = self.headers.get('Authorization')
                     if not token or not get_session(token):
                         self.send_response(401)
@@ -627,8 +627,8 @@ class RequestHandler(BaseHTTPRequestHandler):
                 return
 
 
-    def do_GET(self):
-        if self.path == "/profile":
+    def do_GET(self): 
+        if self.path == "/profile": #1
             token = self.headers.get('Authorization')
             if not token or not get_session(token):
                 self.send_response(401)
@@ -643,7 +643,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(session_user).encode('utf-8'))
 
 
-        elif self.path == "/logout":
+        elif self.path == "/logout": #2
             token = self.headers.get('Authorization')
             if token and get_session(token):
                 remove_session(token)
@@ -658,7 +658,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(b"Invalid session token")
 
 
-        elif self.path.startswith("/parking-lots/"):
+        elif self.path.startswith("/parking-lots/"): #3
             lid = self.path.split("/")[2]
             parking_lots = load_parking_lot_data()
             token = self.headers.get('Authorization')
@@ -714,7 +714,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(parking_lots).encode('utf-8'))
 
 
-        elif self.path.startswith("/reservations/"):
+        elif self.path.startswith("/reservations/"): #4
             reservations = load_reservation_data()
             rid = self.path.replace("/reservations/", "")
             if rid:
@@ -747,7 +747,7 @@ class RequestHandler(BaseHTTPRequestHandler):
                     return
 
 
-        elif self.path == "/payments":
+        elif self.path == "/payments": #5
             token = self.headers.get('Authorization')
             if not token or not get_session(token):
                 self.send_response(401)
@@ -767,7 +767,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             return
 
 
-        elif self.path.startswith("/payments/"):
+        elif self.path.startswith("/payments/"): #6
             token = self.headers.get('Authorization')
             if not token or not get_session(token):
                 self.send_response(401)
