@@ -1,4 +1,7 @@
 
+using CS_api.Models;
+using Microsoft.EntityFrameworkCore;
+
 namespace CS_api
 {
     public class Program
@@ -7,7 +10,13 @@ namespace CS_api
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+            // Register PostgresQL
+            builder.Services.AddDbContext<MobyParkDBContext>(options =>
+                options.UseNpgsql(builder.Configuration.GetConnectionString("PSQL")));
+
+            // Register Swagger
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen();
 
             builder.Services.AddControllers();
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -19,7 +28,11 @@ namespace CS_api
             if (app.Environment.IsDevelopment())
             {
                 app.MapOpenApi();
+                //app.UseSwagger();
+                //app.UseSwaggerUI();
             }
+            app.UseSwagger();
+            app.UseSwaggerUI();
 
             app.UseHttpsRedirection();
 
@@ -32,3 +45,4 @@ namespace CS_api
         }
     }
 }
+
