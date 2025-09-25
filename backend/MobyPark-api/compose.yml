@@ -5,7 +5,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_DB: MobyParkDB
-      POSTGRES_USER: MobyDev
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: devpassword123
     volumes:
       - db_data:/var/lib/postgresql/data
