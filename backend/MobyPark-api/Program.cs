@@ -11,6 +11,12 @@ builder.Services.AddOpenApi();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+
+builder.Services
+    .AddControllers()
+    .AddApplicationPart(typeof(MobyPark_api.Controllers.ParkingLotsController).Assembly);
+builder.Services.AddScoped<MobyPark_api.Services.IParkingLotService, MobyPark_api.Services.ParkingLotService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -36,7 +42,7 @@ var summaries = new[]
 
 app.MapGet("/weatherforecast", () =>
 {
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
+    var forecast = Enumerable.Range(1, 5).Select(index =>
         new WeatherForecast
         (
             DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
@@ -47,6 +53,9 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 })
 .WithName("GetWeatherForecast");
+
+app.MapControllers();   // <— REQUIRED so /api/... routes work
+
 
 app.Run();
 

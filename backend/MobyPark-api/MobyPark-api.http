@@ -3,13 +3,29 @@
 @session_token = {{login.response.body.session_token}}
 
 
+### Creating a parking lot
+# @name create
+POST {{api_HostAddress}}/api/parking-lots
+Content-Type: application/json
+
+{
+  "name": "Central",
+  "location": "Rotterdam",
+  "address": "Main St 1",
+  "capacity": 120,
+  "tariff": 2.5,
+  "dayTariff": 15,
+  "coordinates": { "lat": 51.9701, "lng": 6.6945 }
+}
+
+
 ### TEST TEMPLATE WEATHERFORECAST
 GET {{api_HostAddress}}/weatherforecast/
 Accept: application/json
 
+
 ###
 //non registerd user
-
 POST {{api_HostAddress}}/register
 Content-Type: application/json
 
@@ -17,6 +33,7 @@ Content-Type: application/json
   "username": "newuser123",
   "password": "SecretPass!23"
 }
+
 ###
 //register admin
 POST {{api_HostAddress}}/register
@@ -27,8 +44,8 @@ Content-Type: application/json
   "password": "SecretPass!23",
   "role": "ADMIN"
 }
-###
 
+###
 POST {{api_HostAddress}}/register
 Content-Type: application/json
 

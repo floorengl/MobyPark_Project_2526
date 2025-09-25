@@ -12,8 +12,8 @@ namespace MobyPark_api.Data
             if (!await db.ParkingLots.AnyAsync())
             {
                 db.ParkingLots.AddRange(
-                    new Data.Models.ParkingLot { Name = "Central", Location= "Rotterdam", Capacity = 120 },
-                    new Data.Models.ParkingLot { Name = "Airport", Location ="Rotterdam", Capacity = 350 }
+                    new Data.Models.ParkingLot { Name = "Central", Location = "Rotterdam", Capacity = 120 },
+                    new Data.Models.ParkingLot { Name = "Airport", Location = "Rotterdam", Capacity = 350 }
                 );
             }
 
@@ -29,3 +29,4 @@ namespace MobyPark_api.Data
         }
     }
 }
+
