@@ -1,6 +1,319 @@
-@MobyPark_api_HostAddress = http://localhost:5240
+@api_HostAddress = http://localhost:5240
 
-GET {{MobyPark_api_HostAddress}}/weatherforecast/
+@session_token = {{login.response.body.session_token}}
+
+
+### TEST TEMPLATE WEATHERFORECAST
+GET {{api_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###
+//non registerd user
+
+POST {{api_HostAddress}}/register
+Content-Type: application/json
+
+{
+  "username": "newuser123",
+  "password": "SecretPass!23"
+}
+###
+//register admin
+POST {{api_HostAddress}}/register
+Content-Type: application/json
+
+{
+  "username": "newadmin123",
+  "password": "SecretPass!23",
+  "role": "ADMIN"
+}
+###
+
+POST {{api_HostAddress}}/register
+Content-Type: application/json
+
+{
+  "username": "adminMan!",
+  "password": "SecretPass!23"
+}
+
+###
+//registerd user
+POST {{api_HostAddress}}/register
+Content-Type: application/json
+
+{
+  "username": "cindy.leenders42",
+  "password": "6b37d1ec969838d29cb611deaff50a6b"
+}
+
+###
+//non registerd user login
+# @name login
+POST {{api_HostAddress}}/login
+Content-Type: application/json
+
+{
+  "username": "newuser123",
+  "password": "SecretPass!23"
+}
+###
+//non registerd admin login
+# @name login
+POST {{api_HostAddress}}/login
+Content-Type: application/json
+
+{
+  "username": "newadmin123",
+  "password": "SecretPass!23"
+}
+
+
+###
+// non existing user
+POST {{api_HostAddress}}/login
+Content-Type: application/json
+
+{
+  "username": "IDontExistSorry",
+  "password": "SecretPass!23"
+}
+
+###
+//registerd user login
+// cant log in because the provided password below is hashed.
+POST {{api_HostAddress}}/login
+Content-Type: application/json
+
+{
+  "username": "cindy.leenders42",
+  "password": "6b37d1ec969838d29cb611deaff50a6b"
+}
+
+###
+// Only possible when logged in as admin
+POST {{api_HostAddress}}/parking-lots/
+Content-Type: application/json
+Authorization: {{session_token}}
+
+###
+// Empty request shold not cause server to throw an error
+POST {{api_HostAddress}}/parking-lots/1/sessions/start
+Content-Type: application/json
+Authorization: {{session_token}}
+
+###
+
+POST {{api_HostAddress}}/parking-lots/1/sessions/start
+Authorization: {{session_token}}
+Content-Type: application/json
+
+{
+  "licenseplate": "AA-11-AAA"
+}
+
+###
+POST {{api_HostAddress}}/parking-lots/1/sessions/stop
+Content-Type: application/json
+Authorization: {{session_token}}
+
+{
+  "licenseplate": "AA-11-AAA"
+}
+###
+POST {{api_HostAddress}}/reservations
+Content-Type: application/json
+Authorization: {{session_token}}
+
+{
+  "licenseplate": "BB-2222-BB",
+  "startdate": "21-12-2025 10:00:30",
+  "enddate": "21-12-2025 10:30:30",
+  "parkinglot": 4
+}
+
+###
+POST {{api_HostAddress}}/vehicles/
+Content-Type: application/json
+Authorization: {{session_token}}
+
+{
+"name": "newuser123",
+"license_plate": "124-UUUU-4235"
+}
+
+###
+// admin exclusive give a negative amount of money to someone
+POST {{api_HostAddress}}/payments/refund
+Content-Type: application/json
+Authorization: {{session_token}}
+
+{
+ "amount": 10.5
+}
+
+###
+POST {{api_HostAddress}}/payments
+Content-Type: application/json
+Authorization: {{session_token}}
+
+{
+  "transaction": "what is this field for?",
+ "amount": 10.5
+}
+
+###
+GET {{api_HostAddress}}/profile
+Content-Type: application/json
+Authorization: {{session_token}}
+
+###
+GET {{api_HostAddress}}/logout
+Content-Type: application/json
+Authorization: {{session_token}}
+
+###
+GET {{api_HostAddress}}/parking-lots/
+Content-Type: application/json
+
+###
+GET {{api_HostAddress}}/parking-lots/1
+Content-Type: application/json
+
+###
+GET {{api_HostAddress}}/parking-lots/1/sessions
+Content-Type: application/json
+Authorization: {{session_token}}
+
+###
+GET {{api_HostAddress}}/parking-lots/1/sessions/2
+Content-Type: application/json
+Authorization: {{session_token}}
+
+###
+GET {{api_HostAddress}}/reservations/1
+Content-Type: application/json
+Authorization: {{session_token}}
+
+###
+GET {{api_HostAddress}}/payments
+Content-Type: application/json
+Authorization: {{session_token}}
+
+###
+GET {{api_HostAddress}}/payments/
+Content-Type: application/json
+Authorization: {{session_token}}
+
+###
+GET {{api_HostAddress}}/profile
+Content-Type: application/json
+Authorization: {{session_token}}
+
+###
+GET {{api_HostAddress}}/payments/
+Content-Type: application/json
+Authorization: {{session_token}}
+
+###
+GET {{api_HostAddress}}/billing
+Content-Type: application/json
+Authorization: {{session_token}}
+
+###
+GET {{api_HostAddress}}/vehicles
+Content-Type: application/json
+Authorization: {{session_token}}
+
+// PUT START HERE ====================================================================================
+
+###
+// requires admin login
+PUT {{api_HostAddress}}/parking-lots/1
+Content-Type: application/application/json
+Authorization: {{session_token}}
+
+{
+
+}
+
+###
+PUT {{api_HostAddress}}/profile
+Content-Type: application/application/json
+Authorization: {{session_token}}
+
+{
+  "name": "Jonathan Doedrich",
+  "password": "It's me!"
+}
+###
+PUT {{api_HostAddress}}/profile
+Content-Type: application/application/json
+Authorization: {{session_token}}
+
+{
+  "username": "newuser123",
+  "name": "Friedrich der Kleine"
+}
+
+###
+PUT {{api_HostAddress}}/profile
+Content-Type: application/application/json
+Authorization: {{session_token}}
+
+{
+  "username": "newuser123",
+  "name": "Friedrich der Kleine"
+}
+
+###
+// call shouldn't work because the reservation is under a different name
+PUT {{api_HostAddress}}/reservations/1
+Content-Type: application/application/json
+Authorization: {{session_token}}
+
+{
+  "licenseplate":"UREGIUHEG",
+  "start_time": "2025-08-18T21:30:00Z",
+  "end_time": "2025-08-19T06:30:00Z",
+  "parkinglot": "4"
+}
+
+###
+//
+PUT {{api_HostAddress}}/vehicles/1
+Content-Type: application/application/json
+Authorization: {{session_token}}
+
+{
+  "name": "newuser123"
+}
+###
+PUT {{api_HostAddress}}/payments/1
+Content-Type: application/json
+Authorization:{{session_token}}
+
+{
+  "t_data":"UUU",
+  "validation": "III"
+}
+
+// DELETE START HERE ====================================================================================
+###
+// Must be done as admin
+DELETE {{api_HostAddress}}/parking-lots/6
+Authorization:{{session_token}}
+
+###
+// Must be done as admin
+DELETE {{api_HostAddress}}/parking-lots/8/sessions/1
+Authorization:{{session_token}}
+
+###
+// Must be done as admin OR reservation's holder name must be the same name as the current session.
+DELETE {{api_HostAddress}}/reservations/2
+Authorization:{{session_token}}
+
+###
+DELETE {{api_HostAddress}}/vehicles/0
+Authorization: {{session_token}}
