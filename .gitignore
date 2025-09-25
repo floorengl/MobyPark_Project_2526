@@ -420,3 +420,5 @@ FodyWeavers.xsd
 #Ignore json files in data folder
 /data/*.json
 *.json
+
+!appsettings.json
