@@ -1,11 +1,8 @@
 @api_HostAddress = http://localhost:5240
 
-@session_token = {{login.response.body.session_token}}
+@session_token = {{login.response.body.accessToken}}
 
 
-### TEST TEMPLATE WEATHERFORECAST
-GET {{api_HostAddress}}/weatherforecast/
-Accept: application/json
 
 ###
 //non registerd user
@@ -165,7 +162,7 @@ Authorization: {{session_token}}
 ###
 GET {{api_HostAddress}}/profile
 Content-Type: application/json
-Authorization: {{session_token}}
+Authorization: Bearer {{session_token}}
 
 ###
 GET {{api_HostAddress}}/logout
