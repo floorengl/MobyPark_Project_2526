@@ -14,5 +14,12 @@
             string variable = "WHOOOOO";
             Assert.Equal("WHOOOOO", variable);
         }
+
+        [Fact]
+        public void SameTests()
+        {
+            string variable = "WHOOOOO";
+            Assert.Equal("WHOOOOO", variable);
+        }
     }
 }
