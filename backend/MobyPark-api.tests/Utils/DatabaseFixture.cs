@@ -1,29 +1,16 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
 using Testcontainers.PostgreSql;
+
 namespace MobyPark_api.tests
 {
-    //host = 127.0.0.1; Database = YourDatabaseName; Username = postgres; Password = XXXXX
-    public class TestDatabaseFixture : IAsyncLifetime
+    public class DatabaseFixture : IAsyncLifetime
     {
-        //public TestDbContext(DbContextOptions<TestDbContext> options)
-        //    : base(options) { }
+        private readonly PostgreSqlContainer _container = new PostgreSqlBuilder()
+            .WithUsername("postgres")
+            .WithPassword("devpassword123")
+            .Build();
 
-        //public DbSet<User> Users { get; set; }
-        private readonly PostgreSqlContainer _container;
         public DbContextOptions<AppDbContext> DbOptions { get; private set; } = default!;
-
-        /// <summary>
-        /// Create a new container for postgre in Docker. this container will be used to run our tests.
-        /// </summary>
-        public TestDatabaseFixture()
-        {
-            _container = new PostgreSqlBuilder()
-                .WithUsername("postgres")
-                .WithPassword("devpassword123")
-                // .WithPortBinding(5434)
-                .Build();
-        }
 
 
         public async Task InitializeAsync()

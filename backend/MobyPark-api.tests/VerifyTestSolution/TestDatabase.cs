@@ -2,18 +2,24 @@
 
 namespace MobyPark_api.tests.VerifyTestSolution
 {
-    [CollectionDefinition("Database collection")]
-    public class DatabaseCollection : ICollectionFixture<TestDatabaseFixture> { }
-
-    [Collection("Database collection")]
+    [Collection("SharedDatabase")]
     public class TestDatabase
     {
-        private readonly TestDatabaseFixture _fixture;
+        private readonly DatabaseFixture _fixture;
 
-        public TestDatabase(TestDatabaseFixture fixture)
+        public TestDatabase(DatabaseFixture fixture)
         {
             _fixture = fixture;
         }
+
+        [Fact]
+        public async Task DoesStateBleedBetweenTestsAboveEntry() // this test exists twice once before (this one) and once after the state has been changed.
+        {
+            using var context = _fixture.CreateContext();
+            User? PossiblyJohann = await context.Users.FirstOrDefaultAsync(u => u.FullName == "Johann Backer <TEST>");
+            Assert.Null(PossiblyJohann);
+        }
+
 
         [Fact]
         public async Task CanInsertAndRetrieveEntity()
@@ -27,6 +33,14 @@ namespace MobyPark_api.tests.VerifyTestSolution
             var loaded = await context.Users.FirstOrDefaultAsync(u => u.FullName == "Johann Backer <TEST>");
             Assert.NotNull(loaded);
             Assert.Equal("Johann Backer <TEST>", loaded.FullName);
+        }
+
+        [Fact]
+        public async Task DoesStateBleedBetweenTestsBelowEntry() // this test exists twice once before and once after (this one)  the state has been changed.
+        {
+            using var context = _fixture.CreateContext();
+            User? PossiblyJohann = await context.Users.FirstOrDefaultAsync(u => u.FullName == "Johann Backer <TEST>");
+            Assert.Null(PossiblyJohann);
         }
     }
 }
