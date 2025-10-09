@@ -14,6 +14,9 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
 // Password hasher and auth service.
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ILicenseplateService, LicenseplateService>();
+builder.Services.AddScoped<ISessionService, SessionService>();
+
 
 // JWT authentication.
 var key = builder.Configuration["Jwt:Key"] ?? "dev-only-change-me";

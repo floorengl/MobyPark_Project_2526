@@ -11,8 +11,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MobyPark_api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250930163936_InitialAndUsers")]
-    partial class InitialAndUsers
+    [Migration("20251009121845_AddingInitialTables")]
+    partial class AddingInitialTables
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -23,6 +23,62 @@ namespace MobyPark_api.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("Licenseplate", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("LicensePlateName")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("licensePlateNames");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("licenseplates", (string)null);
+                });
+
+            modelBuilder.Entity("Session", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<float?>("Cost")
+                        .HasColumnType("real");
+
+                    b.Property<short?>("DurationMinutes")
+                        .HasColumnType("smallint");
+
+                    b.Property<long?>("LicensePlateId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ParkingLotId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("PlateText")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("Started")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("Stopped")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LicensePlateId");
+
+                    b.ToTable("sessions", (string)null);
+                });
 
             modelBuilder.Entity("User", b =>
                 {
@@ -84,6 +140,21 @@ namespace MobyPark_api.Migrations
                         .HasDatabaseName("ux_users_username");
 
                     b.ToTable("users", (string)null);
+                });
+
+            modelBuilder.Entity("Session", b =>
+                {
+                    b.HasOne("Licenseplate", "LicensePlate")
+                        .WithMany("Sessions")
+                        .HasForeignKey("LicensePlateId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("LicensePlate");
+                });
+
+            modelBuilder.Entity("Licenseplate", b =>
+                {
+                    b.Navigation("Sessions");
                 });
 #pragma warning restore 612, 618
         }

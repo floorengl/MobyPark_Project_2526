@@ -2,6 +2,26 @@
 
 @session_token = {{login.response.body.accessToken}}
 
+//POST
+###
+POST {{api_HostAddress}}/licenseplate
+Content-Type: application/json
+
+{
+  "licenseplatename": "ABC-99-D"
+}
+
+
+// GET ALL
+###
+POST {{api_HostAddress}}/licenseplate
+
+
+// DELETE
+###
+DELETE {{api_HostAddress}}/licenseplate/ABC-99-D
+
+// GET ONE
 
 
 ###
