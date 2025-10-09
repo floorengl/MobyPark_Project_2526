@@ -13,34 +13,43 @@ namespace MobyPark_api.tests.VerifyTestSolution
         }
 
         [Fact]
-        public async Task DoesStateBleedBetweenTestsAboveEntry() // this test exists twice once before (this one) and once after the state has been changed.
+        public async Task CanAddToEmptyDatabase1()
         {
-            using var context = _fixture.CreateContext();
-            User? PossiblyJohann = await context.Users.FirstOrDefaultAsync(u => u.FullName == "Johann Backer <TEST>");
-            Assert.Null(PossiblyJohann);
-        }
-
-
-        [Fact]
-        public async Task CanInsertAndRetrieveEntity()
-        {
+            //arrange
+            await _fixture.ResetDB();
             using var context = _fixture.CreateContext();
 
             var entity = new User { FullName="Johann Backer <TEST>", Email="johann@theback.de", Password="Secretive!"};
+            //act
+            var alreadyPresent = await context.Users.FirstOrDefaultAsync(u => u.FullName == "Johann Backer <TEST>");
             context.Users.Add(entity);
             await context.SaveChangesAsync();
-
             var loaded = await context.Users.FirstOrDefaultAsync(u => u.FullName == "Johann Backer <TEST>");
+
+            //assert
+            Assert.Null(alreadyPresent);
             Assert.NotNull(loaded);
             Assert.Equal("Johann Backer <TEST>", loaded.FullName);
         }
 
         [Fact]
-        public async Task DoesStateBleedBetweenTestsBelowEntry() // this test exists twice once before and once after (this one)  the state has been changed.
+        public async Task CanAddToEmptyDatabase2()
         {
+            //arrange
+            await _fixture.ResetDB();
             using var context = _fixture.CreateContext();
-            User? PossiblyJohann = await context.Users.FirstOrDefaultAsync(u => u.FullName == "Johann Backer <TEST>");
-            Assert.Null(PossiblyJohann);
+
+            var entity = new User { FullName = "Johann Backer <TEST>", Email = "johann@theback.de", Password = "Secretive!" };
+            //act
+            var alreadyPresent = await context.Users.FirstOrDefaultAsync(u => u.FullName == "Johann Backer <TEST>");
+            context.Users.Add(entity);
+            await context.SaveChangesAsync();
+            var loaded = await context.Users.FirstOrDefaultAsync(u => u.FullName == "Johann Backer <TEST>");
+
+            //assert
+            Assert.Null(alreadyPresent);
+            Assert.NotNull(loaded);
+            Assert.Equal("Johann Backer <TEST>", loaded.FullName);
         }
     }
 }
