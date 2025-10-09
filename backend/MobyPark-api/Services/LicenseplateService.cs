@@ -38,5 +38,13 @@ public sealed class LicenseplateService : ILicenseplateService
 
         _db.LicensePlates.Remove(plate);
         await _db.SaveChangesAsync(ct);
+
+        if (!await _db.LicensePlates.AnyAsync(ct))
+        {
+            // PostgreSQL: reset the identity/sequence for the table
+            await _db.Database.ExecuteSqlRawAsync(
+                "SELECT setval(pg_get_serial_sequence('public.licenseplates','id'), 1, false);",
+                ct);
+        }
     }
 }
