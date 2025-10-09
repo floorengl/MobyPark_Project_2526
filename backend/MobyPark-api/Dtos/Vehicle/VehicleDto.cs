@@ -3,7 +3,7 @@
     public sealed class VehicleDto
     {
         public long Id { get; init; }
-        public string LicensePlate { get; init; } = string.Empty;
+        public string LicensePlate { get; init; } = "";
         public string? Make { get; init; }
         public string? Model { get; init; }
         public string? Color { get; init; }

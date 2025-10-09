@@ -8,6 +8,7 @@ public class AppDbContext : DbContext
 
     public DbSet<User> Users => Set<User>();
     public DbSet<Vehicle> Vehicles => Set<Vehicle>();
+    public DbSet<ParkingLot> ParkingLots => Set<ParkingLot>();
 
     // Finds and applies all configurations.
     protected override void OnModelCreating(ModelBuilder b)
