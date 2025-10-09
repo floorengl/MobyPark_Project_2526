@@ -13,6 +13,6 @@ namespace MobyPark_api.Dtos.ParkingLot
         public long Capacity { get; set; }
         public float? Tariff { get; set; }
         public float? DayTariff { get; set; }
-        public Point Coordinates { get; set; }
+        public string Coordinates { get; set; }
     }
 }

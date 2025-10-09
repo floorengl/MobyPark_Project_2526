@@ -12,6 +12,6 @@ namespace MobyPark_api.Dtos.ParkingLot
         public float? Tariff { get; set; }
         public float? DayTariff { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public Point Coordinates { get; set; }
+        public string Coordinates { get; set; }
     }
 }

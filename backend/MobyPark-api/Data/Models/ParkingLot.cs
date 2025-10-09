@@ -26,6 +26,6 @@ namespace MobyPark_api.Data.Models
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public Point Coordinates { get; set; }
+        public string Coordinates { get; set; }
     }
 }
