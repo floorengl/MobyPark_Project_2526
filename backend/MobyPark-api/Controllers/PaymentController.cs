@@ -14,7 +14,18 @@ public sealed class PaymentController : ControllerBase
     [Authorize]
     public async Task<IActionResult> PaymentsBetween(DateTime start, DateTime end)
     {
-        var list = await _payment.GetPaymentsBetweenAsync(start, end);
-        return Ok(list);
+        if (start > end)
+        {
+            return BadRequest("Start date must be earlier than end date");
+        }
+
+        var payments = await _payment.GetPaymentsBetweenAsync(start, end);
+
+        if (payments == null || !payments.Any())
+        {
+            return NotFound("No payments found for the specified date range");
+        }
+        
+        return Ok(payments);
     }
 }
