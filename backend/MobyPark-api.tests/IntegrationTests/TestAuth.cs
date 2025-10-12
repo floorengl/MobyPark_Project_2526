@@ -1,24 +1,22 @@
-﻿
-
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 
-namespace MobyPark_api.tests.TestServices
+namespace MobyPark_api.tests.IntegrationTests
 {
     [Collection("SharedDatabase")]
     public class TestAuth
     {
         private readonly DatabaseFixture _fixture;
-
         public TestAuth(DatabaseFixture fixture) => _fixture = fixture;
+
 
         /// <summary>
         /// Get a new auth service to test on
-        /// I (Rein) who wrote this line vvv am not sure how AuthService should be instaniated. The configbuilder I am least certain of.
         /// </summary>
         /// <returns></returns>
         public AuthService GetAuthService()
         {
+            // I (Rein) who wrote this line vvv am not sure how AuthService should be instaniated. The configbuilder I am least certain of.
             return new AuthService(_fixture.CreateContext(), new PasswordHasher<User>(), new ConfigurationBuilder().Build());
         }
 
@@ -36,7 +34,6 @@ namespace MobyPark_api.tests.TestServices
             Assert.NotNull(actual);
             Assert.Equal(id, actual.Id);
             Assert.Equal(toMake.Username, actual.Username);
-
         }
 
     }
