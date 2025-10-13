@@ -21,6 +21,47 @@ namespace MobyPark_api.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("MobyPark_api.Data.Models.ParkingLot", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<long>("Capacity")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Coordinates")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<float?>("DayTariff")
+                        .HasColumnType("real");
+
+                    b.Property<string>("Location")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<float?>("Tariff")
+                        .HasColumnType("real");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ParkingLots");
+                });
+
             modelBuilder.Entity("MobyPark_api.Data.Models.Vehicle", b =>
                 {
                     b.Property<long>("Id")
