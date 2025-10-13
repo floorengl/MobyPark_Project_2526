@@ -11,8 +11,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MobyPark_api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251009121845_AddingInitialTables")]
-    partial class AddingInitialTables
+    [Migration("20251013103148_InitialDBLicenseplates")]
+    partial class InitialDBLicenseplates
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -35,10 +35,14 @@ namespace MobyPark_api.Migrations
 
                     b.Property<string>("LicensePlateName")
                         .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("licensePlateNames");
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("license_plate_name");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("LicensePlateName")
+                        .IsUnique();
 
                     b.ToTable("licenseplates", (string)null);
                 });

@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MobyPark_api.Migrations
 {
     /// <inheritdoc />
-    public partial class AddingInitialTables : Migration
+    public partial class InitialDBLicenseplates : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -18,7 +18,7 @@ namespace MobyPark_api.Migrations
                 {
                     id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    licensePlateNames = table.Column<string>(type: "text", nullable: false)
+                    license_plate_name = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -70,6 +70,12 @@ namespace MobyPark_api.Migrations
                         principalColumn: "id",
                         onDelete: ReferentialAction.SetNull);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_licenseplates_license_plate_name",
+                table: "licenseplates",
+                column: "license_plate_name",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_sessions_LicensePlateId",

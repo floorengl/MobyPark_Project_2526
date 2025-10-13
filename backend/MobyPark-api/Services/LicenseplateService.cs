@@ -9,23 +9,19 @@ public sealed class LicenseplateService : ILicenseplateService
     public LicenseplateService(AppDbContext db, IConfiguration cfg, ISessionService sessions)
         => (_db, _cfg, _sessions) = (db, cfg, sessions);
 
-    // POST /licenseplate (unchanged signature)
+
+    // POST Licenseplate / Start session
     public async Task<long> LicenseplatesAsync(LicenseplateDto dto, CancellationToken cto)
     {
-
-        // upsert or always create? — keep your current behavior: create a row
         var plate = new Licenseplate { LicensePlateName = dto.LicensePlateName };
         _db.LicensePlates.Add(plate);
         await _db.SaveChangesAsync(cto);
-
-        // start session in default lot
         var parkingLotId = _cfg.GetValue<long>("DefaultParkingLotId", 1L);
         await _sessions.StartForPlateAsync(parkingLotId, plate.Id, cto);
-
         return plate.Id;
     }
 
-    // NEW: delete + stop session
+    // DELETE Licenseplate / Stop Session
     public async Task DeleteAsync(string plateText, CancellationToken ct)
     {
         var plate = await _db.LicensePlates
@@ -41,10 +37,27 @@ public sealed class LicenseplateService : ILicenseplateService
 
         if (!await _db.LicensePlates.AnyAsync(ct))
         {
-            // PostgreSQL: reset the identity/sequence for the table
             await _db.Database.ExecuteSqlRawAsync(
                 "SELECT setval(pg_get_serial_sequence('public.licenseplates','id'), 1, false);",
                 ct);
         }
+    }
+
+    // GET ALL Licenseplates
+    public async Task<IReadOnlyList<LicenseplateDto>> GetAllAsync(CancellationToken ct) =>
+        await _db.Set<Licenseplate>()
+            .AsNoTracking()
+            .OrderBy(x => x.LicensePlateName)
+            .Select(x => new LicenseplateDto { LicensePlateName = x.LicensePlateName })
+            .ToListAsync(ct);
+
+    // GET ONE Licenseplates
+    public async Task<LicenseplateDto?> GetByPlateAsync(string plate, CancellationToken ct)
+    {
+        var key = plate;
+        var x = await _db.Set<Licenseplate>()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(l => l.LicensePlateName == key, ct);
+        return x is null ? null : new LicenseplateDto { LicensePlateName = x.LicensePlateName };
     }
 }

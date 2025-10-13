@@ -32,10 +32,14 @@ namespace MobyPark_api.Migrations
 
                     b.Property<string>("LicensePlateName")
                         .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("licensePlateNames");
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("license_plate_name");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("LicensePlateName")
+                        .IsUnique();
 
                     b.ToTable("licenseplates", (string)null);
                 });
