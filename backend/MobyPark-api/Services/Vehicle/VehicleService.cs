@@ -25,9 +25,6 @@ namespace MobyPark_api.Services.VehicleService
                     Model = v.Model,
                     Color = v.Color,
                     Year = v.Year,
-                    Date = v.Date,
-                    StartTime = v.StartTime,
-                    EndTime = v.EndTime,
                     UserId = v.UserId,
                     CreatedAt = v.CreatedAt
                 })
@@ -48,9 +45,6 @@ namespace MobyPark_api.Services.VehicleService
                 Model = vehicle.Model,
                 Color = vehicle.Color,
                 Year = vehicle.Year,
-                Date = vehicle.Date,
-                StartTime = vehicle.StartTime,
-                EndTime = vehicle.EndTime,
                 UserId = vehicle.UserId,
                 CreatedAt = vehicle.CreatedAt
             };
@@ -68,9 +62,6 @@ namespace MobyPark_api.Services.VehicleService
                 Model = v.Model,
                 Color = v.Color,
                 Year = v.Year,
-                Date = v.Date,
-                StartTime = v.StartTime,
-                EndTime = v.EndTime,
                 UserId = v.UserId,
                 CreatedAt = v.CreatedAt
             })
@@ -89,9 +80,6 @@ namespace MobyPark_api.Services.VehicleService
                 Model = v.Model,
                 Color = v.Color,
                 Year = v.Year,
-                Date = v.Date,
-                StartTime = v.StartTime,
-                EndTime = v.EndTime,
                 UserId = v.UserId,
                 CreatedAt = v.CreatedAt
             })
@@ -107,9 +95,6 @@ namespace MobyPark_api.Services.VehicleService
                 Model = dto.Model,
                 Color = dto.Color,
                 Year = dto.Year,
-                Date = dto.Date,
-                StartTime = dto.StartTime,
-                EndTime = dto.EndTime,
                 UserId = userId,
                 CreatedAt = DateTime.UtcNow
             };
@@ -127,9 +112,6 @@ namespace MobyPark_api.Services.VehicleService
                 Model = vehicle.Model,
                 Color = vehicle.Color,
                 Year = vehicle.Year,
-                Date = vehicle.Date,
-                StartTime = vehicle.StartTime,
-                EndTime = vehicle.EndTime,
                 UserId = vehicle.UserId,
                 CreatedAt = vehicle.CreatedAt
             };
@@ -145,9 +127,6 @@ namespace MobyPark_api.Services.VehicleService
             vehicle.Model = dto.Model;
             vehicle.Color = dto.Color;
             vehicle.Year = dto.Year;
-            vehicle.Date = dto.Date;
-            vehicle.StartTime = dto.StartTime;
-            vehicle.EndTime = dto.EndTime;
 
 
             await _db.SaveChangesAsync();
@@ -161,9 +140,6 @@ namespace MobyPark_api.Services.VehicleService
                 Model = vehicle.Model,
                 Color = vehicle.Color,
                 Year = vehicle.Year,
-                Date = vehicle.Date,
-                StartTime = vehicle.StartTime,
-                EndTime = vehicle.EndTime,
                 UserId = vehicle.UserId,
                 CreatedAt = vehicle.CreatedAt
             };
