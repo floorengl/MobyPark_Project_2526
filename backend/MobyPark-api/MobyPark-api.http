@@ -1,5 +1,4 @@
 @api_HostAddress = http://localhost:5240
-
 @session_token = {{login.response.body.accessToken}}
 
 
@@ -11,8 +10,10 @@ Content-Type: application/json
   "licenseplatename": "ABC-99-D"
 }
 
+
 ### GET ALL
 GET {{api_HostAddress}}/licenseplate
+
 
 ### GET ONE
 GET {{api_HostAddress}}/licenseplate/ABC-99-D
@@ -25,7 +26,6 @@ DELETE {{api_HostAddress}}/licenseplate/ABC-99-D
 
 ###
 //non registerd user
-
 POST {{api_HostAddress}}/register
 Content-Type: application/json
 
@@ -33,6 +33,8 @@ Content-Type: application/json
   "username": "newuser123",
   "password": "SecretPass!23"
 }
+
+
 ###
 //register admin
 POST {{api_HostAddress}}/register
@@ -43,28 +45,9 @@ Content-Type: application/json
   "password": "SecretPass!23",
   "role": "ADMIN"
 }
-###
 
-POST {{api_HostAddress}}/register
-Content-Type: application/json
-
-{
-  "username": "adminMan!",
-  "password": "SecretPass!23"
-}
 
 ###
-//registerd user
-POST {{api_HostAddress}}/register
-Content-Type: application/json
-
-{
-  "username": "cindy.leenders42",
-  "password": "6b37d1ec969838d29cb611deaff50a6b"
-}
-
-###
-//non registerd user login
 # @name login
 POST {{api_HostAddress}}/login
 Content-Type: application/json
@@ -73,9 +56,34 @@ Content-Type: application/json
   "username": "newuser123",
   "password": "SecretPass!23"
 }
+
+
+### GET PROFILE
+GET {{api_HostAddress}}/profile
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoibmV3dXNlcjEyMyIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlVTRVIiLCJleHAiOjE3NjAzNTkyMzIsImlzcyI6Im1vYnlwYXJrIiwiYXVkIjoibW9ieXBhcmstY2xpZW50In0.peHzoEXP2eOUuDIwLnK3SThbajjJfh3kQcnTFh2Xq5c
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ###
 //non registerd admin login
-# @name login
+
 POST {{api_HostAddress}}/login
 Content-Type: application/json
 
