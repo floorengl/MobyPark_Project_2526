@@ -6,6 +6,8 @@ public class AppDbContext : DbContext
 
     public DbSet<User> Users => Set<User>();
 
+    public DbSet<Payment> Payments => Set<Payment>();
+
     // Finds and applies all configurations.
     protected override void OnModelCreating(ModelBuilder b)
     {
