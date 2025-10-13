@@ -1,3 +1,5 @@
+using MobyPark_api.Data.Models;
+
 public class User
 {
     public long Id { get; set; }
@@ -10,4 +12,6 @@ public class User
     public DateTimeOffset CreatedAtUtc { get; set; } = DateTimeOffset.UtcNow;
     public short? BirthYear { get; set; }
     public bool Active { get; set; } = true;
+
+    public IList<Vehicle>? Vehicles { get; set; }
 }
