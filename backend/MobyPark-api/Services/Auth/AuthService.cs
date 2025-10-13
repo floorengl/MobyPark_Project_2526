@@ -4,6 +4,8 @@ using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Identity.Data;
+using MobyPark_api.Dtos.Auth;
 
 
 public sealed class AuthService : IAuthService
@@ -55,6 +57,24 @@ public sealed class AuthService : IAuthService
         return dto;
     }
 
+    public async Task<AuthResponseDto> LoginAsync(LoginRequestDto loginRequest)
+    {
+        // Try to find the user by username
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Username == loginRequest.UserName);
+
+        if (user == null)
+            throw new UnauthorizedAccessException("Invalid username or password.");
+        if (!user.Active)
+            throw new UnauthorizedAccessException("User account is inactive.");
+
+        // Verify password
+        var verifyResult = _hasher.VerifyHashedPassword(user, user.Password, loginRequest.Password);
+        if (verifyResult != PasswordVerificationResult.Success)
+            throw new UnauthorizedAccessException("Invalid username or password.");
+
+        var authResponse = CreateJwt(user);
+        return authResponse;
+    }
 
     // Builds JWT access token for an user.
     private AuthResponseDto CreateJwt(User u)

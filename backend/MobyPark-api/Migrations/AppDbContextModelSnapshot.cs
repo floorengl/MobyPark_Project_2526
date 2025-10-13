@@ -76,12 +76,6 @@ namespace MobyPark_api.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<TimeSpan>("EndTime")
-                        .HasColumnType("interval");
-
                     b.Property<string>("LicensePlate")
                         .IsRequired()
                         .HasColumnType("text");
@@ -91,9 +85,6 @@ namespace MobyPark_api.Migrations
 
                     b.Property<string>("Model")
                         .HasColumnType("text");
-
-                    b.Property<TimeSpan>("StartTime")
-                        .HasColumnType("interval");
 
                     b.Property<long>("UserId")
                         .HasColumnType("bigint");
