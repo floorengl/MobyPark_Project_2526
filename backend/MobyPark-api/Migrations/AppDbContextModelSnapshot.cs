@@ -21,6 +21,144 @@ namespace MobyPark_api.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Licenseplate", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("LicensePlateName")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("license_plate_name");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LicensePlateName")
+                        .IsUnique();
+
+                    b.ToTable("licenseplates", (string)null);
+                });
+
+            modelBuilder.Entity("MobyPark_api.Data.Models.ParkingLot", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<long>("Capacity")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Coordinates")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<float?>("DayTariff")
+                        .HasColumnType("real");
+
+                    b.Property<string>("Location")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<float?>("Tariff")
+                        .HasColumnType("real");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ParkingLots");
+                });
+
+            modelBuilder.Entity("MobyPark_api.Data.Models.Vehicle", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Color")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LicensePlate")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Make")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Model")
+                        .HasColumnType("text");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("Year")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Vehicles");
+                });
+
+            modelBuilder.Entity("Session", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<float?>("Cost")
+                        .HasColumnType("real");
+
+                    b.Property<short?>("DurationMinutes")
+                        .HasColumnType("smallint");
+
+                    b.Property<long?>("LicensePlateId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ParkingLotId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("PlateText")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("Started")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("Stopped")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LicensePlateId");
+
+                    b.ToTable("sessions", (string)null);
+                });
+
             modelBuilder.Entity("User", b =>
                 {
                     b.Property<long>("Id")
@@ -81,6 +219,37 @@ namespace MobyPark_api.Migrations
                         .HasDatabaseName("ux_users_username");
 
                     b.ToTable("users", (string)null);
+                });
+
+            modelBuilder.Entity("MobyPark_api.Data.Models.Vehicle", b =>
+                {
+                    b.HasOne("User", "User")
+                        .WithMany("Vehicles")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Session", b =>
+                {
+                    b.HasOne("Licenseplate", "LicensePlate")
+                        .WithMany("Sessions")
+                        .HasForeignKey("LicensePlateId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("LicensePlate");
+                });
+
+            modelBuilder.Entity("Licenseplate", b =>
+                {
+                    b.Navigation("Sessions");
+                });
+
+            modelBuilder.Entity("User", b =>
+                {
+                    b.Navigation("Vehicles");
                 });
 #pragma warning restore 612, 618
         }

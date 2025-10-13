@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MobyPark_api.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialDBLicenseplates : Migration
+    public partial class InitialDB : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -23,6 +23,26 @@ namespace MobyPark_api.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_licenseplates", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ParkingLots",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Location = table.Column<string>(type: "text", nullable: false),
+                    Address = table.Column<string>(type: "text", nullable: false),
+                    Capacity = table.Column<long>(type: "bigint", nullable: false),
+                    Tariff = table.Column<float>(type: "real", nullable: true),
+                    DayTariff = table.Column<float>(type: "real", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Coordinates = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ParkingLots", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -71,6 +91,31 @@ namespace MobyPark_api.Migrations
                         onDelete: ReferentialAction.SetNull);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "Vehicles",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    LicensePlate = table.Column<string>(type: "text", nullable: false),
+                    Make = table.Column<string>(type: "text", nullable: true),
+                    Model = table.Column<string>(type: "text", nullable: true),
+                    Color = table.Column<string>(type: "text", nullable: true),
+                    Year = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    UserId = table.Column<long>(type: "bigint", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Vehicles", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Vehicles_users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "users",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_licenseplates_license_plate_name",
                 table: "licenseplates",
@@ -92,19 +137,30 @@ namespace MobyPark_api.Migrations
                 table: "users",
                 column: "username",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Vehicles_UserId",
+                table: "Vehicles",
+                column: "UserId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "ParkingLots");
+
+            migrationBuilder.DropTable(
                 name: "sessions");
 
             migrationBuilder.DropTable(
-                name: "users");
+                name: "Vehicles");
 
             migrationBuilder.DropTable(
                 name: "licenseplates");
+
+            migrationBuilder.DropTable(
+                name: "users");
         }
     }
 }
