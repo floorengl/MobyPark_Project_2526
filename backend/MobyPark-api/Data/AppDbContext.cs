@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using MobyPark_api.Enums;
 
 public class AppDbContext : DbContext
 {

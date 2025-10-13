@@ -1,9 +1,19 @@
+using Microsoft.EntityFrameworkCore;
+
 public sealed class PaymentService : IPaymentService
 {
-    private List<Payment> _payments = new List<Payment>();
+    private readonly AppDbContext _context;
+
+    public PaymentService(AppDbContext context)
+    {
+        _context = context;
+    }
+
     public async Task<List<Payment>> GetPaymentsBetweenAsync(DateTime start, DateTime end)
     {
-        var result = _payments.Where(p => p.CreatedAt >= start && p.CreatedAt <= end).ToList();
+        var result = await _context.Payments
+            .Where(p => p.CreatedAt >= start && p.CreatedAt <= end)
+            .ToListAsync();
 
         return result;
     }
