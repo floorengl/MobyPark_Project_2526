@@ -9,9 +9,18 @@ public sealed class PaymentController : ControllerBase
     private readonly IPaymentService _payment;
     public PaymentController(IPaymentService payment) => _payment = payment;
 
+
+
+    [HttpPost("AddPayment")]
+    [Authorize]
+    public async Task<IActionResult> AddPayment()
+    {
+        return Ok();
+    }
+
     // GET /PaymentsBetween
     [HttpGet("PaymentsBetween")]
-    [AllowAnonymous]
+    [Authorize]
     public async Task<IActionResult> PaymentsBetween(DateTime start, DateTime end)
     {
         if (start > end)
