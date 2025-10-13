@@ -6,6 +6,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "backend", "backend", "{1AE8
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MobyPark-api", "backend\MobyPark-api\MobyPark-api.csproj", "{6AC347C4-746B-6E20-79AC-2E2CAF2D4FB7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MobyPark-api.tests", "backend\MobyPark-api.tests\MobyPark-api.tests.csproj", "{0D74A11C-CBFE-4CAB-A4C8-0304B2E5210C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -16,12 +18,17 @@ Global
 		{6AC347C4-746B-6E20-79AC-2E2CAF2D4FB7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6AC347C4-746B-6E20-79AC-2E2CAF2D4FB7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6AC347C4-746B-6E20-79AC-2E2CAF2D4FB7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0D74A11C-CBFE-4CAB-A4C8-0304B2E5210C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D74A11C-CBFE-4CAB-A4C8-0304B2E5210C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D74A11C-CBFE-4CAB-A4C8-0304B2E5210C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D74A11C-CBFE-4CAB-A4C8-0304B2E5210C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{6AC347C4-746B-6E20-79AC-2E2CAF2D4FB7} = {1AE8ACA6-933B-BF2A-3671-3E2EAC007D16}
+		{0D74A11C-CBFE-4CAB-A4C8-0304B2E5210C} = {1AE8ACA6-933B-BF2A-3671-3E2EAC007D16}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C4044B50-456C-4433-917B-B31F8E359D1C}
