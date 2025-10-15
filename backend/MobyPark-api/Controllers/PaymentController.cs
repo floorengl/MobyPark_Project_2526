@@ -13,8 +13,9 @@ public sealed class PaymentController : ControllerBase
 
     [HttpPost("AddPayment")]
     [Authorize]
-    public async Task<IActionResult> AddPayment()
+    public async Task<IActionResult> AddPayment(AddPaymentDto dto)
     {
+        await _payment.AddPayment(dto);
         return Ok();
     }
 
@@ -25,7 +26,7 @@ public sealed class PaymentController : ControllerBase
     {
         if (start > end)
         {
-            return BadRequest("Start date must be earlier than end date");
+            return BadRequest("Start date must be earlier than end date (YYYY-MM-DD)");
         }
 
         var payments = await _payment.GetPaymentsBetweenAsync(start, end);
