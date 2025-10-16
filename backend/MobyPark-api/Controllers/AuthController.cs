@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using MobyPark_api.Dtos.Auth;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -19,6 +20,23 @@ public sealed class AuthController : ControllerBase
         return StatusCode(201);
     }
 
+    // <summary>
+    /// Authenticates a user and returns a JWT token.
+    /// </summary>
+    /// <response code="200">Login successful</response>
+    /// <response code="400">Invalid request or validation failed.</response>
+    /// <response code="500">Internal server error.</response>
+    [AllowAnonymous]
+    [HttpPost("login")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(object))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
+    {
+        var token = await _auth.LoginAsync(request);
+
+        return Ok(new { message = "Logged in successfully", token });
+    }
 
     // GET /profile (JWT required)
     [HttpGet("profile")]
