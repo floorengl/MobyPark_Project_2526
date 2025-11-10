@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MobyPark-api", "MobyPark-api.csproj", "{F63BFF7F-3576-FCC3-82CA-3D6100AE816F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F63BFF7F-3576-FCC3-82CA-3D6100AE816F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F63BFF7F-3576-FCC3-82CA-3D6100AE816F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F63BFF7F-3576-FCC3-82CA-3D6100AE816F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F63BFF7F-3576-FCC3-82CA-3D6100AE816F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7956A0A5-C1A6-40AC-AEFF-B8BDB4798D05}
+	EndGlobalSection
+EndGlobal

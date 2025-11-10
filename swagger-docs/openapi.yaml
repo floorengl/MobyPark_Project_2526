@@ -1,7 +1,6 @@
 openapi: 3.0.0
 info:
   title: MobyPark API
-  description: API documentation for the MobyPark parking management system.
   version: 1.0.0
 servers:
   - url: http://localhost:8000
@@ -16,23 +15,19 @@ paths:
             schema:
               type: object
               properties:
-                username:
-                  type: string
-                password:
-                  type: string
-                name:
-                  type: string
+                username: { type: string }
+                password: { type: string }
+                name: { type: string }
+              required: [username, password]
       responses:
         '201':
           description: User created
         '200':
           description: Username already taken
-        '400':
-          description: Missing credentials
 
   /login:
     post:
-      summary: Log in a user
+      summary: Login user
       requestBody:
         required: true
         content:
@@ -40,151 +35,481 @@ paths:
             schema:
               type: object
               properties:
-                username:
-                  type: string
-                password:
-                  type: string
+                username: { type: string }
+                password: { type: string }
+              required: [username, password]
       responses:
         '200':
           description: User logged in
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  session_token:
-                    type: string
         '401':
           description: Invalid credentials
-        '400':
-          description: Missing credentials
 
-  /parking-lots:
-    post:
-      summary: Create a new parking lot (Admin only)
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                location:
-                  type: string
-                capacity:
-                  type: integer
-      responses:
-        '201':
-          description: Parking lot created
-        '403':
-          description: Access denied
-
-  /vehicles:
-    post:
-      summary: Add a new vehicle
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                license_plate:
-                  type: string
-      responses:
-        '201':
-          description: Vehicle added
-        '401':
-          description: Require field missing
-        '403':
-          description: Vehicle already exists
-
-  /vehicles/{vehicleId}:
-    delete:
-      summary: Delete a vehicle
-      security:
-        - bearerAuth: []
+  /logout:
+    get:
+      summary: Logout user
       parameters:
-        - name: vehicleId
-          in: path
+        - name: Authorization
+          in: header
           required: true
-          schema:
-            type: string
+          schema: { type: string }
       responses:
         '200':
-          description: Vehicle deleted
-        '401':
-          description: Unauthorized
-        '404':
-          description: Vehicle not found
-
-  /reservations:
-    post:
-      summary: Create a new reservation
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                licenseplate:
-                  type: string
-                startdate:
-                  type: string
-                  format: date-time
-                enddate:
-                  type: string
-                  format: date-time
-                parkinglot:
-                  type: string
-      responses:
-        '201':
-          description: Reservation created
-        '401':
-          description: Require field missing
-        '404':
-          description: Parking lot not found
+          description: User logged out
 
   /profile:
     get:
       summary: Get user profile
-      security:
-        - bearerAuth: []
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema: { type: string }
       responses:
         '200':
-          description: User profile retrieved
-        '401':
-          description: Unauthorized
+          description: User profile
+    put:
+      summary: Update user profile
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password: { type: string }
+                name: { type: string }
+      responses:
+        '200':
+          description: User updated
 
-  /logout:
+  /parking-lots:
+    get:
+      summary: List parking lots
+      responses:
+        '200':
+          description: Parking lots list
     post:
-      summary: Log out a user
-      security:
-        - bearerAuth: []
+      summary: Create parking lot (ADMIN only)
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '201':
+          description: Parking lot created
+
+  /parking-lots/{id}:
+    get:
+      summary: Get parking lot details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
       responses:
         '200':
-          description: User logged out
-        '400':
-          description: Invalid session token
+          description: Parking lot details
+    put:
+      summary: Update parking lot (ADMIN only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: Authorization
+          in: header
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Parking lot updated
+    delete:
+      summary: Delete parking lot (ADMIN only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: Authorization
+          in: header
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Parking lot deleted
 
-security:
-  - bearerAuth: []
-components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
+  /parking-lots/{id}/sessions:
+    get:
+      summary: List sessions for parking lot
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: Authorization
+          in: header
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Sessions list
+    post:
+      summary: Start session
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: Authorization
+          in: header
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                licenseplate: { type: string }
+              required: [licenseplate]
+      responses:
+        '200':
+          description: Session started
+
+  /parking-lots/{id}/sessions/{sid}/stop:
+    post:
+      summary: Stop session
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: sid
+          in: path
+          required: true
+          schema: { type: string }
+        - name: Authorization
+          in: header
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                licenseplate: { type: string }
+              required: [licenseplate]
+      responses:
+        '200':
+          description: Session stopped
+
+  /reservations:
+    get:
+      summary: List reservations
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Reservations list
+    post:
+      summary: Create reservation
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                licenseplate: { type: string }
+                startdate: { type: string }
+                enddate: { type: string }
+                parkinglot: { type: string }
+              required: [licenseplate, startdate, enddate, parkinglot]
+      responses:
+        '201':
+          description: Reservation created
+
+  /reservations/{id}:
+    get:
+      summary: Get reservation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: Authorization
+          in: header
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Reservation details
+    put:
+      summary: Update reservation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: Authorization
+          in: header
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Reservation updated
+    delete:
+      summary: Delete reservation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: Authorization
+          in: header
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Reservation deleted
+
+  /vehicles:
+    get:
+      summary: List vehicles
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Vehicles list
+    post:
+      summary: Add vehicle
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                license_plate: { type: string }
+              required: [name, license_plate]
+      responses:
+        '201':
+          description: Vehicle added
+
+  /vehicles/{id}:
+    get:
+      summary: Get vehicle
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: Authorization
+          in: header
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Vehicle details
+    put:
+      summary: Update vehicle
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: Authorization
+          in: header
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+      responses:
+        '200':
+          description: Vehicle updated
+    delete:
+      summary: Delete vehicle
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: Authorization
+          in: header
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Vehicle deleted
+
+  /payments:
+    get:
+      summary: List payments
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Payments list
+    post:
+      summary: Add payment
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                transaction: { type: string }
+                amount: { type: number }
+      responses:
+        '201':
+          description: Payment added
+
+  /payments/{id}:
+    get:
+      summary: Get payment (ADMIN only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: Authorization
+          in: header
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Payment details
+    put:
+      summary: Update payment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: Authorization
+          in: header
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                t_data: { type: object }
+                validation: { type: string }
+      responses:
+        '200':
+          description: Payment updated
+
+  /payments/{id}/refund:
+    post:
+      summary: Refund payment (ADMIN only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: Authorization
+          in: header
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount: { type: number }
+      responses:
+        '201':
+          description: Payment refunded
+
+  /billing:
+    get:
+      summary: Get billing info
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Billing info
+
+  /billing/{username}:
+    get:
+      summary: Get billing info for user (ADMIN only)
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema: { type: string }
+        - name: Authorization
+          in: header
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Billing info for user
