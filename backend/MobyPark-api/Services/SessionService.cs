@@ -6,7 +6,7 @@ public sealed class SessionService : ISessionService
     public SessionService(AppDbContext db) => _db = db;
 
     // Start session
-    public async Task<long> StartForPlkanslvjhbsljkvzchnljkvhk hjlkakfcm n jdsdateAsync(long parkingLotId, long licensePlateId, CancellationToken ct)
+    public async Task<long> StartForPlateAsync(long parkingLotId, long licensePlateId, CancellationToken ct)
     {
         var open = await _db.Sessions
             .FirstOrDefaultAsync(s => s.ParkingLotId == parkingLotId
