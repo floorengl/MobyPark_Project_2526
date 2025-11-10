@@ -21,7 +21,7 @@ public sealed class PaymentController : ControllerBase
     // PUt /UpdatePayment
     [HttpPut("UpdatePayment")]
     [Authorize]
-   public async Task<IActionResult> UpdatePayment(int id, UpdatePaymentDto dto)
+    public async Task<IActionResult> UpdatePayment(int id, UpdatePaymentDto dto)
     {
         var payment = await _payment.UpdatePaymentAsync(id, dto);
         if (payment == null) return NotFound();
