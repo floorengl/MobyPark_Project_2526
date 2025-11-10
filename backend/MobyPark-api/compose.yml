@@ -12,5 +12,11 @@ services:
     ports:
       - "5434:5432"
 
+  api:
+    build:
+      context: .
+      dockerfile: backend/MobyPark-api/Dockerfile
+    image: mobypark-api:dev
+
 volumes:
   db_data:
