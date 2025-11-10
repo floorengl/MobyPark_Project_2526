@@ -24,7 +24,7 @@ public sealed class AuthService : IAuthService
         if (await _db.Users.AnyAsync(u => u.Username == dto.Username, ct))
             throw new ApplicationException("Username already exists.");
 
-        var user = new User { Username = dto.Username, Role = "USER", Active = true };
+        var user = new User { Username = dto.Username, Role = "User", Active = true };
         user.Password = _hasher.HashPassword(user, dto.Password);
         _db.Users.Add(user);
         await _db.SaveChangesAsync(ct);

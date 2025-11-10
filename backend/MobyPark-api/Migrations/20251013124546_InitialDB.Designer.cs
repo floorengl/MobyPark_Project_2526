@@ -11,8 +11,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MobyPark_api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251013103148_InitialDBLicenseplates")]
-    partial class InitialDBLicenseplates
+    [Migration("20251013124546_InitialDB")]
+    partial class InitialDB
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -45,6 +45,84 @@ namespace MobyPark_api.Migrations
                         .IsUnique();
 
                     b.ToTable("licenseplates", (string)null);
+                });
+
+            modelBuilder.Entity("MobyPark_api.Data.Models.ParkingLot", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<long>("Capacity")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Coordinates")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<float?>("DayTariff")
+                        .HasColumnType("real");
+
+                    b.Property<string>("Location")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<float?>("Tariff")
+                        .HasColumnType("real");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ParkingLots");
+                });
+
+            modelBuilder.Entity("MobyPark_api.Data.Models.Vehicle", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Color")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LicensePlate")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Make")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Model")
+                        .HasColumnType("text");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("Year")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Vehicles");
                 });
 
             modelBuilder.Entity("Session", b =>
@@ -146,6 +224,17 @@ namespace MobyPark_api.Migrations
                     b.ToTable("users", (string)null);
                 });
 
+            modelBuilder.Entity("MobyPark_api.Data.Models.Vehicle", b =>
+                {
+                    b.HasOne("User", "User")
+                        .WithMany("Vehicles")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Session", b =>
                 {
                     b.HasOne("Licenseplate", "LicensePlate")
@@ -159,6 +248,11 @@ namespace MobyPark_api.Migrations
             modelBuilder.Entity("Licenseplate", b =>
                 {
                     b.Navigation("Sessions");
+                });
+
+            modelBuilder.Entity("User", b =>
+                {
+                    b.Navigation("Vehicles");
                 });
 #pragma warning restore 612, 618
         }

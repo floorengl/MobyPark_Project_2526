@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MobyPark_api.Dtos.ParkingLot;
 using MobyPark_api.Services.ParkingLot;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MobyPark_api.Controllers
 {
@@ -16,6 +17,7 @@ namespace MobyPark_api.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> GetAll()
         {
             var result = await _service.GetAllAsync();
@@ -23,6 +25,7 @@ namespace MobyPark_api.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> GetById(long id)
         {
             var result = await _service.GetByIdAsync(id);
@@ -31,6 +34,7 @@ namespace MobyPark_api.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> Create([FromBody] ParkingLotCreateDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -39,6 +43,7 @@ namespace MobyPark_api.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> Update(long id, [FromBody] ParkingLotUpdateDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -48,6 +53,7 @@ namespace MobyPark_api.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> Delete(long id)
         {
             var deleted = await _service.DeleteAsync(id);
