@@ -27,13 +27,15 @@ namespace MobyPark_api.tests.IntegrationTests
             var SUT = GetAuthService();
             var DBconnection = _fixture.CreateContext();
             RegisterRequestDto toMake = new RegisterRequestDto() { Username = "Johnathan Doe", Password = "mysecretcode12345/"};
+
+            RegisterRequestDto toTestPipeline = new RegisterRequestDto() { Username = "should", Password = "fail"};
             // act
             long id = await SUT.RegisterAsync(toMake, new CancellationToken());
-            User? actual = DBconnection.Users.FirstOrDefault(u => u.Id == id);
+            User? actual = DBconnection.Users.FirstOrDefault(u => u.Id != id);
             // assert
             Assert.NotNull(actual);
             Assert.Equal(id, actual.Id);
-            Assert.Equal(toMake.Username, actual.Username);
+            Assert.Equal(toTestPipeline.Username, actual.Username);
         }
 
     }
