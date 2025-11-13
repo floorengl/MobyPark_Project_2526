@@ -14,8 +14,15 @@ public sealed class PaymentController : ControllerBase
     [Authorize]
     public async Task<IActionResult> CreateRefund(RefundPaymentDto dto)
     {
-        await _payment.AddRefundAsync(dto);
-        return Ok();
+        try
+        {
+            await _payment.AddRefundAsync(dto);
+            return StatusCode(201);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
     // PUt /UpdatePayment
