@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using MobyPark_api.Dtos;
 
 public sealed class LicenseplateService : ILicenseplateService
 {
@@ -11,8 +12,12 @@ public sealed class LicenseplateService : ILicenseplateService
 
 
     // POST Licenseplate / Start session
-    public async Task<long> LicenseplatesAsync(LicenseplateDto dto, CancellationToken cto)
+    public async Task<long> LicenseplatesAsync(CheckInDto dto, CancellationToken cto)
     {
+        var lot = await _db.ParkingLots.FindAsync(dto.ParkingLotId);
+        if (lot == null) return 0;
+
+        int occupied = await _db.Sessions.CountAsync(ses => ses.ParkingLotId == lot.Id && ses.Stopped == null);
         var plate = new Licenseplate { LicensePlateName = dto.LicensePlateName };
         _db.LicensePlates.Add(plate);
         await _db.SaveChangesAsync(cto);
