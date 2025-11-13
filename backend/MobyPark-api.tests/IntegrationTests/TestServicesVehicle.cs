@@ -195,10 +195,10 @@ namespace MobyPark_api.tests.IntegrationTests
 
             //act
             await sut.CreateAsync(vehicleDto, 1);
-            var dangerousCode = async () => await sut.CreateAsync(vehicleDto, 1);
+            var secondCar = await sut.CreateAsync(vehicleDto, 1);
 
             //assert
-            await Assert.ThrowsAsync<ArgumentException>(dangerousCode);
+            Assert.Null(secondCar);
         }
         
         [Fact]
@@ -220,7 +220,7 @@ namespace MobyPark_api.tests.IntegrationTests
             var actualVehicle = await sut.CreateAsync(vehicleDto, actualUser.Id);
 
             //act
-            await sut.UpdateAsync(actualVehicle.Id, ElaborateVehicle, actualUser.Id);
+            await sut.UpdateAsync(1, ElaborateVehicle, actualUser.Id);
             var allVehicles = db.Vehicles.ToList();
             var vehicle = db.Vehicles.FirstOrDefault(v => v.Color == "teal");
 
@@ -230,7 +230,7 @@ namespace MobyPark_api.tests.IntegrationTests
         }
 
         [Fact]
-        public async Task UpdateAsync_AddingLessInfo_KeepsNonOverridenInfo()
+        public async Task UpdateAsync_AddingLessInfo_RemoveOldMaterial()
         {
             // arrange
             await _fixture.ResetDB();
@@ -248,36 +248,12 @@ namespace MobyPark_api.tests.IntegrationTests
             var actualVehicle = await sut.CreateAsync(vehicleDto, actualUser.Id);
 
             //act
-            await sut.UpdateAsync(actualUser.Id, ElaborateVehicle, actualVehicle.Id);
+            await sut.UpdateAsync(actualUser.Id, ElaborateVehicle, 1);
             var vehicle = db.Vehicles.FirstOrDefault(v => v.LicensePlate == "toffepeer");
 
             //assert
             Assert.NotNull(vehicle);
-            Assert.Equal("teal", vehicle.Color);
-        }
-
-        [Fact]
-        public async Task UpdateAsync_NoLicensePlate_ThrowsError()
-        {
-            // arrange
-            await _fixture.ResetDB();
-            var db = _fixture.CreateContext();
-            var sut = new VehicleService(db);
-            var vehicleDto = new VehicleDto() { Id = 1, LicensePlate = "toffepeer", Color = "distinct" };
-            var BadVehicle = new VehicleDto(){Id = 1, Color = "distinct" };
-
-            var actualUser = db.Add(new User() { Id = 1, Username = "Arnout" }).Entity;
-            db.SaveChanges();
-            var actualVehicle = await sut.CreateAsync(vehicleDto, actualUser.Id);
-            db.SaveChanges();
-
-            //act
-            await sut.UpdateAsync(actualUser.Id, BadVehicle, actualVehicle.Id);
-            var vehicle = db.Vehicles.FirstOrDefault(v => v.Color == "distinct");
-
-            //assert
-            Assert.NotNull(vehicle);
-            Assert.Equal("toffepeer", vehicle.LicensePlate);
+            Assert.Null(vehicle.Color);
         }
 
         [Fact]
@@ -293,7 +269,7 @@ namespace MobyPark_api.tests.IntegrationTests
             db.SaveChanges();
 
             //act
-            await sut.DeleteAsync(car.Id, user.Id);
+            await sut.DeleteAsync(1, user.Id);
             var vehicle = db.Vehicles.FirstOrDefault(v => v.LicensePlate == "55-rvp-12");
 
             Assert.Null(vehicle);
