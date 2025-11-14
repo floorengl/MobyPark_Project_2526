@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Net;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens.Experimental;
 using MobyPark_api.Dtos.Vehicle;
 using MobyPark_api.Services.VehicleService;
 
@@ -70,6 +72,8 @@ namespace MobyPark_api.Controllers
         {
             var userId = long.Parse(User.FindFirst("id")?.Value ?? "0");
             var created = await _vh.CreateAsync(dto, userId);
+            if (created is null) 
+                return StatusCode(422, "license plate already exists");
             return CreatedAtAction(nameof(GetByIdAsync), new { id = created.Id }, created);
         }
 

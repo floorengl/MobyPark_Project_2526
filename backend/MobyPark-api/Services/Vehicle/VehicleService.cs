@@ -34,7 +34,7 @@ namespace MobyPark_api.Services.VehicleService
 
         public async Task<VehicleDto?> GetByIdAsync(long id, long userId)
         {
-            var vehicle = await _db.Vehicles.FirstOrDefaultAsync(v => v.Id == id && v.UserId == userId);
+            var vehicle = await _db.Vehicles.Where(v => v.UserId == userId).Take(Convert.ToInt32(id)).FirstOrDefaultAsync();
             if (vehicle is null) return null;
 
 
@@ -87,8 +87,12 @@ namespace MobyPark_api.Services.VehicleService
             .ToListAsync();
         }
 
-        public async Task<VehicleDto> CreateAsync(VehicleDto dto, long userId)
+        public async Task<VehicleDto?> CreateAsync(VehicleDto dto, long userId)
         {
+            if (await _db.Vehicles.AnyAsync(v => v.LicensePlate == dto.LicensePlate))
+            {
+                return null;
+            }
             var vehicle = new Vehicle
             {
                 LicensePlate = dto.LicensePlate,
@@ -119,7 +123,7 @@ namespace MobyPark_api.Services.VehicleService
         }
         public async Task<VehicleDto?> UpdateAsync(long id, VehicleDto dto, long userId)
         {
-            var vehicle = await _db.Vehicles.FirstOrDefaultAsync(v => v.Id == id && v.UserId == userId);
+            var vehicle = await _db.Vehicles.Where(v => v.UserId == userId).Take(Convert.ToInt32(id)).FirstOrDefaultAsync();
             if (vehicle is null) return null;
 
 
@@ -148,7 +152,8 @@ namespace MobyPark_api.Services.VehicleService
 
         public async Task<bool> DeleteAsync(long id, long userId)
         {
-            var vehicle = await _db.Vehicles.FirstOrDefaultAsync(v => v.Id == id && v.UserId == userId);
+            //var vehicle = await _db.Vehicles.FirstOrDefaultAsync(v => v.Id == id && v.UserId == userId);
+            var vehicle = await _db.Vehicles.Where(v => v.UserId == userId).Take(Convert.ToInt32(id)).FirstOrDefaultAsync();
             if (vehicle is null) return false;
 
 
