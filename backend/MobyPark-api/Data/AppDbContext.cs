@@ -10,9 +10,9 @@ public class AppDbContext : DbContext
     public DbSet<User> Users => Set<User>();
     public DbSet<Licenseplate> LicensePlates => Set<Licenseplate>();
     public DbSet<Session> Sessions => Set<Session>();
-    
     public DbSet<Vehicle> Vehicles => Set<Vehicle>();
     public DbSet<ParkingLot> ParkingLots => Set<ParkingLot>();
+    public DbSet<Reservation> Reservations => Set<Reservation>();
 
     // Finds and applies all configurations.
     protected override void OnModelCreating(ModelBuilder b)
