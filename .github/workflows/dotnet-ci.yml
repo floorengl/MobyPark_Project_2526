@@ -48,6 +48,6 @@ jobs:
       - name: Build API image (no push)
         uses: docker/build-push-action@v6
         with:
-          context: .
+          context: backend/MobyPark-api
           file: backend/MobyPark-api/Dockerfile
           push: false
