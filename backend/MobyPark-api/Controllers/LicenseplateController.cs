@@ -11,7 +11,6 @@ public sealed class LicenseplateController : ControllerBase
 
     // POST /licenseplate
     [HttpPost]
-    [Route("checkin")]
     public async Task<IActionResult> Licenseplates([FromBody] CheckInDto dto, CancellationToken cto)
     {
         var id = await _license.LicenseplatesAsync(dto, cto);
@@ -20,7 +19,6 @@ public sealed class LicenseplateController : ControllerBase
 
     // DELETE /licenseplate
     [HttpDelete("{plate}")]
-    [Route("checkout")]
     [Authorize(Roles = "ADMIN")]
     public async Task<IActionResult> Delete(string plate, CancellationToken ct)
     {

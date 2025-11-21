@@ -11,7 +11,7 @@ namespace MobyPark_api.Controllers
     public class ReservationController: ControllerBase
     {
         private readonly IReservationService _reser;
-        private ReservationController(IReservationService reservationService) => _reser = reservationService;
+        public ReservationController(IReservationService reservationService) => _reser = reservationService;
 
         [HttpGet]
         [Authorize(Roles = "ADMIN")]
