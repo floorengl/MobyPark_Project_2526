@@ -17,9 +17,9 @@ public class ReservationService : IReservationService
         return dtos;
     }
 
-    public async Task<ReadReservationDto?> GetById(long id)
+    public async Task<ReadReservationDto?> GetById(string guid)
     {
-        var reservation = await _db.Reservations.FindAsync(id);
+        var reservation = await _db.Reservations.FindAsync(guid);
         var dto = ReservationToReadDto(reservation);
         return dto;
     }
@@ -29,6 +29,7 @@ public class ReservationService : IReservationService
         Reservation reservation = new Reservation() 
         { 
             LicensePlate = dto.LicensePlate, 
+            ParkingLotId = dto.ParkingLotId,
             StartTime = dto.StartTime, 
             EndTime = dto.EndTime, 
             CreatedAt = DateTime.UtcNow, 
@@ -39,9 +40,9 @@ public class ReservationService : IReservationService
        return ReservationToReadDto(reservation);
     }
 
-    public async Task<ReadReservationDto?> Put(long id, WriteReservationDto dto)
+    public async Task<ReadReservationDto?> Put(string guid, WriteReservationDto dto)
     {
-        Reservation? reservation = await _db.Reservations.FindAsync(id);
+        Reservation? reservation = await _db.Reservations.FindAsync(guid);
         if (reservation == null) return null;
         reservation.LicensePlate = dto.LicensePlate;
         reservation.ParkingLotId = dto.ParkingLotId;
@@ -53,9 +54,9 @@ public class ReservationService : IReservationService
         return ReservationToReadDto(reservation);
     }
 
-    public async Task<ReadReservationDto?> Delete(long id)
+    public async Task<ReadReservationDto?> Delete(string guid)
     {
-        Reservation? reservation = await _db.Reservations.FindAsync(id);
+        Reservation? reservation = await _db.Reservations.FindAsync(guid);
         if (reservation == null) return null;
         _db.Reservations.Remove(reservation);
         await _db.SaveChangesAsync();
@@ -68,7 +69,7 @@ public class ReservationService : IReservationService
 
         return new ReadReservationDto()
         {
-            Id = reservation.Id,
+            Id = reservation.Id.ToString(),
             ParkingLotId = reservation.ParkingLotId,
             LicensePlate = reservation.LicensePlate,
             StartTime = reservation.StartTime,

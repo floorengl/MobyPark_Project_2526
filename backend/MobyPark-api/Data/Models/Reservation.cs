@@ -5,8 +5,9 @@ namespace MobyPark_api.Data.Models
     public class Reservation
     {
         [Key]
-        public long Id { get; set; }
+        public Guid Id { get; set; }
         public long ParkingLotId { get; set; }
+        public ParkingLot ParkingLot { get; set; }
         [Required]
         public required string LicensePlate { get; set; }
         public DateTime StartTime { get; set; }

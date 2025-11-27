@@ -4,7 +4,7 @@ namespace MobyPark_api.Dtos.Reservation
 {
     public class ReadReservationDto
     {
-        public long Id { get; init; }
+        public string Id { get; init; }
         public long ParkingLotId { get; init; }
         public required string LicensePlate { get; init; }
         public DateTime StartTime { get; init; }

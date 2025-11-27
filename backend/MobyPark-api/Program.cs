@@ -24,6 +24,7 @@ public class Program
         builder.Services.AddScoped<IAuthService, AuthService>();
         builder.Services.AddScoped<ILicenseplateService, LicenseplateService>();
         builder.Services.AddScoped<ISessionService, SessionService>();
+        builder.Services.AddScoped<IReservationService, ReservationService>();
 
 
         // JWT authentication.
@@ -98,7 +99,7 @@ public class Program
         using (var scope = app.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            // db.Database.Migrate();
+            db.Database.Migrate();
         }
 
         app.Run();

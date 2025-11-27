@@ -14,7 +14,7 @@ namespace MobyPark_api.Controllers
         public ReservationController(IReservationService reservationService) => _reser = reservationService;
 
         [HttpGet]
-        [Authorize(Roles = "ADMIN")]
+       // [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> Get(CancellationToken ct)
         {
             ReadReservationDto[] dtos = await _reser.GetAll();
@@ -25,10 +25,10 @@ namespace MobyPark_api.Controllers
 
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> Get(long id, CancellationToken ct)
+        [HttpGet("{plate}/{index}")]
+        public async Task<IActionResult> Get([FromRoute]string guid, CancellationToken ct)
         {
-            ReadReservationDto? dto = await _reser.GetById(id);
+            ReadReservationDto? dto = await _reser.GetById(guid);
             if (dto == null)
                 return NotFound();
             else
@@ -45,20 +45,20 @@ namespace MobyPark_api.Controllers
                 return Ok(readDto);
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Put([FromHeader] long id, [FromBody] WriteReservationDto dto, CancellationToken ct)
+        [HttpPut("{plate}/{index}")]
+        public async Task<IActionResult> Put([FromRoute]string guid, [FromBody] WriteReservationDto dto, CancellationToken ct)
         {
-            ReadReservationDto? readDto = await _reser.Put(id, dto);
+            ReadReservationDto? readDto = await _reser.Put(guid, dto);
             if (readDto == null)
                 return BadRequest();
             else
                 return Ok(readDto);
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(long id, CancellationToken ct)
+        [HttpDelete("{plate}/{index}")]
+        public async Task<IActionResult> Delete([FromRoute] string guid, CancellationToken ct)
         {
-            ReadReservationDto? dto = await _reser.Delete(id);
+            ReadReservationDto? dto = await _reser.Delete(guid);
             if (dto == null)
                 return NotFound();
             else

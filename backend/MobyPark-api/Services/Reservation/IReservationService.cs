@@ -5,9 +5,9 @@ using MobyPark_api.Dtos.Reservation;
 public interface IReservationService
 {
     public Task<ReadReservationDto[]> GetAll();
-    public Task<ReadReservationDto?> GetById(long id);
+    public Task<ReadReservationDto?> GetById(string guid);
     public Task<ReadReservationDto?> Post(WriteReservationDto dto);
-    public Task<ReadReservationDto?> Put(long id, WriteReservationDto dto);
-    public Task<ReadReservationDto?> Delete(long id);
+    public Task<ReadReservationDto?> Put(string guid, WriteReservationDto dto);
+    public Task<ReadReservationDto?> Delete(string guid);
     public ReadReservationDto? ReservationToReadDto(Reservation? reservation);
 }
