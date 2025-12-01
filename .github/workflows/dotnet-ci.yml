@@ -15,7 +15,7 @@ env:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, mobypark]
     steps:
       - uses: actions/checkout@v4
 
@@ -41,7 +41,7 @@ jobs:
 
   docker-build-check:
     needs: build-and-test
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, mobypark]
     steps:
       - uses: actions/checkout@v4
 
