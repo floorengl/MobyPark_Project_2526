@@ -1,7 +1,6 @@
 ﻿
 
-namespace MobyPark_api.tests.UnitTests
-{
+
     public class UnitTestReservationService
     {
 
@@ -82,4 +81,3 @@ namespace MobyPark_api.tests.UnitTests
 
         }
     }
-}
