@@ -2,7 +2,7 @@ name: .NET CI
 
 on:
   push:
-    branches: [ main, Developer ]
+    branches: [ main ]
   pull_request:
 
 permissions:
