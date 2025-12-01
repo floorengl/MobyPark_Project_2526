@@ -38,6 +38,11 @@ namespace MobyPark_api.Controllers
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] WriteReservationDto dto, CancellationToken ct)
         {
+            var allowed = await _reser.IsReservationAllowed(dto);
+            if (!allowed.Item1)
+            {
+                return BadRequest(allowed.Item2);
+            }
             ReadReservationDto? readDto = await _reser.Post(dto);
             if (readDto == null)
                 return BadRequest();
@@ -48,6 +53,11 @@ namespace MobyPark_api.Controllers
         [HttpPut("{guid}")]
         public async Task<IActionResult> Put([FromRoute]string guid, [FromBody] WriteReservationDto dto, CancellationToken ct)
         {
+            var allowed = await _reser.IsReservationAllowed(dto);
+            if (!allowed.Item1)
+            {
+                return BadRequest(allowed.Item2);
+            }
             ReadReservationDto? readDto = await _reser.Put(guid, dto);
             if (readDto == null)
                 return BadRequest();

@@ -10,4 +10,5 @@ public interface IReservationService
     public Task<ReadReservationDto?> Put(string guid, WriteReservationDto dto);
     public Task<ReadReservationDto?> Delete(string guid);
     public ReadReservationDto? ReservationToReadDto(Reservation? reservation);
+    public Task<(bool, string)> IsReservationAllowed(WriteReservationDto reservation);
 }

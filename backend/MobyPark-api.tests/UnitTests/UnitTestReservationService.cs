@@ -36,5 +36,50 @@ namespace MobyPark_api.tests.UnitTests
             var actual = ReservationService.DoTimesOverlap(data.Item1, data.Item2, data.Item3, data.Item4);
             Assert.Equal(expected, actual);
         }
+
+
+
+        public (DateTime, DateTime, (DateTime, DateTime)[], int) GetDataFor_Test_CountMaxOverlap(int i)
+        {
+            return new (DateTime, DateTime, (DateTime, DateTime)[], int)[] {
+                (new DateTime(100), new DateTime(200), 
+                    [(new DateTime(250), new DateTime(300)), (new DateTime(275), new DateTime(350))],
+                 0), // no overlap
+                (new DateTime(100), new DateTime(200),
+                    [(new DateTime(90), new DateTime(150)), (new DateTime(170), new DateTime(190))],
+                 1), // two seperate sessions in one longer reservation. meaning 1 max overlap.
+                (new DateTime(100), new DateTime(200),
+                    [(new DateTime(90), new DateTime(150)), (new DateTime(120), new DateTime(160))],
+                 2), // two simulatnious sessions
+                (new DateTime(100), new DateTime(200),
+                    [(new DateTime(90), new DateTime(220))],
+                 1), // reservation fits inside one longer span
+                (new DateTime(100), new DateTime(500),
+                    [
+                    (new DateTime(90), new DateTime(550)),
+                    (new DateTime(90), new DateTime(120)), 
+                    (new DateTime(110), new DateTime(140)), 
+                    (new DateTime(300), new DateTime(320)), 
+                    (new DateTime(300), new DateTime(320)), 
+                    (new DateTime(300), new DateTime(320))],
+                 4), // reservation fits inside one longer span and has one small peak at the start and a larger at the end of the session
+            }[i];
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(3)]
+        [InlineData(4)]
+        public void Test_CountMaxOverlap(int index)
+        {
+            //arrange
+            (var start, var end, var intervals, int expected) = GetDataFor_Test_CountMaxOverlap(index);
+            //act
+            int actual = ReservationService.CountMaxOverlap(start, end, intervals);
+            Assert.Equal(expected, actual);
+
+        }
     }
 }

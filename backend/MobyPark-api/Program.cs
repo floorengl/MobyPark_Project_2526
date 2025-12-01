@@ -100,7 +100,8 @@ public class Program
         using (var scope = app.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            db.Database.Migrate();
+            if (Environment.GetEnvironmentVariable("IsXUnitTesting") != "True")
+                db.Database.Migrate();
         }
 
         app.Run();
