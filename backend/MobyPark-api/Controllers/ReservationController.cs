@@ -25,7 +25,7 @@ namespace MobyPark_api.Controllers
 
         }
 
-        [HttpGet("{plate}/{index}")]
+        [HttpGet("{guid}")]
         public async Task<IActionResult> Get([FromRoute]string guid, CancellationToken ct)
         {
             ReadReservationDto? dto = await _reser.GetById(guid);
@@ -45,7 +45,7 @@ namespace MobyPark_api.Controllers
                 return Ok(readDto);
         }
 
-        [HttpPut("{plate}/{index}")]
+        [HttpPut("{guid}")]
         public async Task<IActionResult> Put([FromRoute]string guid, [FromBody] WriteReservationDto dto, CancellationToken ct)
         {
             ReadReservationDto? readDto = await _reser.Put(guid, dto);
@@ -55,7 +55,7 @@ namespace MobyPark_api.Controllers
                 return Ok(readDto);
         }
 
-        [HttpDelete("{plate}/{index}")]
+        [HttpDelete("{guid}")]
         public async Task<IActionResult> Delete([FromRoute] string guid, CancellationToken ct)
         {
             ReadReservationDto? dto = await _reser.Delete(guid);

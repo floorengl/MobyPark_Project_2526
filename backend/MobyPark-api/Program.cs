@@ -1,11 +1,11 @@
 using System.Security.Claims;
 using System.Text;
-using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using MobyPark_api.Services.ParkingLot;
 
 
 
@@ -25,6 +25,7 @@ public class Program
         builder.Services.AddScoped<ILicenseplateService, LicenseplateService>();
         builder.Services.AddScoped<ISessionService, SessionService>();
         builder.Services.AddScoped<IReservationService, ReservationService>();
+        builder.Services.AddScoped<IParkingLotService, ParkingLotService>();
 
 
         // JWT authentication.
