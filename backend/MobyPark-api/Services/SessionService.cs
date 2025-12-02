@@ -1,9 +1,16 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using MobyPark_api.Enums;
 
 public sealed class SessionService : ISessionService
 {
     private readonly AppDbContext _db;
-    public SessionService(AppDbContext db) => _db = db;
+    private readonly IPaymentService _paymentService;
+    public SessionService(AppDbContext db, IPaymentService paymentService)
+    {
+        _db = db;
+        _paymentService = paymentService;
+    }
 
     // Start session
     public async Task<long> StartForPlateAsync(long parkingLotId, long licensePlateId, CancellationToken ct)
@@ -36,6 +43,7 @@ public sealed class SessionService : ISessionService
     public async Task StopOpenForPlateAsync(long parkingLotId, long licensePlateId, CancellationToken ct)
     {
         var session = await _db.Sessions
+            .Include(s => s.ParkingLot)
             .FirstOrDefaultAsync(s => s.ParkingLotId == parkingLotId
                                    && s.LicensePlateId == licensePlateId
                                    && s.Stopped == null, ct);
@@ -47,5 +55,29 @@ public sealed class SessionService : ISessionService
         session.Cost = null;
 
         await _db.SaveChangesAsync(ct);
+
+
+        var pricePerHour = session.ParkingLot?.Tariff ?? 0;
+        session.Cost = (decimal)(minutes / 60.0) * pricePerHour;
+
+        var tData = new
+        {
+            amount = session.Cost,
+            date = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"),
+            method = "ideal",
+            issuer = "XYY910HH",
+            bank = "ABN-NL"
+        };
+
+        var paymentDto = new AddPaymentDto
+        {
+            Id = DateTime.UtcNow.Ticks,
+            CreatedAt = DateTime.UtcNow,
+            Status = PaymentStatus.Complete,
+            Hash = "PlaceholderHash",
+            TData = JsonSerializer.Serialize(tData)
+        };
+
+        await _paymentService.AddPaymentAsync(paymentDto);
     }
 }
