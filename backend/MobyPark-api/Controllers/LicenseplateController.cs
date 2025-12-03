@@ -13,7 +13,9 @@ public sealed class LicenseplateController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Licenseplates([FromBody] CheckInDto dto, CancellationToken cto)
     {
-        var id = await _license.LicenseplatesAsync(dto, cto);
+        var result = await _license.LicenseplatesAsync(dto, cto);
+        if (result.Item1 == 0)
+            return BadRequest(result.Item2);
         return StatusCode(201);
     }
 

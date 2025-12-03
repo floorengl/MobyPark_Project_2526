@@ -35,6 +35,7 @@ public class ReservationService : IReservationService
             StartTime = dto.StartTime,
             EndTime = dto.EndTime,
             CreatedAt = DateTime.UtcNow,
+            Status = ReservationStatus.Unpaid,
             Cost = CalculateReservationCost(dto.StartTime, dto.EndTime, parkinglot)
         };
        await _db.Reservations.AddAsync(reservation);
@@ -196,9 +197,17 @@ public class ReservationService : IReservationService
 
     public async Task ConsumeReservation(string guid)
     {
-        var reservation = await _db.Reservations.FindAsync(guid);
+        var reservation = await _db.Reservations.FindAsync(new Guid(guid));
         if (reservation == null) throw new ArgumentException("reservation does not exist");
         reservation.Status = ReservationStatus.Used;
+        await _db.SaveChangesAsync();
+    }
+
+    public async Task PayForReservation(string guid)
+    {
+        var reservation = await _db.Reservations.FindAsync(new Guid(guid));
+        if (reservation == null) throw new ArgumentException("reservation does not exist");
+        reservation.Status = ReservationStatus.UnUsed;
         await _db.SaveChangesAsync();
     }
 }

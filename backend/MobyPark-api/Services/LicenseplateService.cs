@@ -12,11 +12,11 @@ public sealed class LicenseplateService : ILicenseplateService
 
 
     // POST Licenseplate / Start session
-    public async Task<long> LicenseplatesAsync(CheckInDto dto, CancellationToken cto)
+    public async Task<(long, string)> LicenseplatesAsync(CheckInDto dto, CancellationToken cto)
     {
         // input validation
         var lot = await _db.ParkingLots.FindAsync(dto.ParkingLotId);
-        if (lot == null) return 0;
+        if (lot == null) return (0, "parking lot not found");
 
         int occupied = await _db.Sessions.CountAsync(ses => ses.ParkingLotId == lot.Id && ses.Stopped == null);
         var reservation = await _reservations.GetActiveReservation(dto.LicensePlateName, DateTime.UtcNow);
@@ -26,7 +26,7 @@ public sealed class LicenseplateService : ILicenseplateService
         {
             if (occupied > lot.Capacity)
             {
-                return 0;
+                return (0, "parking lot is full. despite reservation");
             }
             else
             {
@@ -35,9 +35,9 @@ public sealed class LicenseplateService : ILicenseplateService
         }
         else
         {
-            if (await _reservations.WillParkingLotOverflow(DateTime.UtcNow, DateTime.UtcNow.AddHours(4), dto.ParkingLotId + occupied))
+            if (await _reservations.WillParkingLotOverflow(DateTime.UtcNow, DateTime.UtcNow.AddHours(4), dto.ParkingLotId, occupied))
             {
-                return 0;
+                return (0, "parking lot is full");
             }
         }
 
@@ -45,7 +45,7 @@ public sealed class LicenseplateService : ILicenseplateService
         _db.LicensePlates.Add(plate);
         await _db.SaveChangesAsync(cto);
         await _sessions.StartForPlateAsync(dto.ParkingLotId, plate.Id, cto);
-        return plate.Id;
+        return (plate.Id, "session started");
     }
 
     // DELETE Licenseplate / Stop Session

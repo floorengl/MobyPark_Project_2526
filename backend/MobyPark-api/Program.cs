@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using MobyPark_api.Middleware;
 using MobyPark_api.Services.ParkingLot;
 
 
@@ -94,6 +95,7 @@ public class Program
         // app.UseHttpsRedirection(); // comment for http local tests
         app.UseAuthentication();
         app.UseAuthorization();
+        app.UseMiddleware<ErrorHandelerMiddleware>();
         app.MapControllers();
 
         // Auto-apply migrations.

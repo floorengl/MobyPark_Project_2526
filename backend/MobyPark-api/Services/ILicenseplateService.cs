@@ -3,7 +3,7 @@ using MobyPark_api.Dtos;
 
 public interface ILicenseplateService
 {
-    Task<long> LicenseplatesAsync(CheckInDto dto, CancellationToken cto);
+    Task<(long, string)> LicenseplatesAsync(CheckInDto dto, CancellationToken cto);
     Task DeleteAsync(string plateText, CancellationToken ct);
     Task<IReadOnlyList<LicenseplateDto>> GetAllAsync(CancellationToken ct);
     Task<LicenseplateDto?> GetByPlateAsync(string plate, CancellationToken ct);
