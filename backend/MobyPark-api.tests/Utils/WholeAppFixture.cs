@@ -33,6 +33,7 @@ public class WholeAppFixture : WebApplicationFactory<Program>, IAsyncLifetime
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        Environment.SetEnvironmentVariable("IsXUnitTesting", "True");
         // Environment.SetEnvironmentVariable("ConnectionStrings:Postgres", _dbContainer.GetConnectionString());
         builder.ConfigureServices(services =>
         {
