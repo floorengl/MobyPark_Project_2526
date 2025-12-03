@@ -75,6 +75,14 @@ namespace MobyPark_api.Controllers
                 return Ok(dto);
         }
 
-
+        [HttpGet("For{plate}/{time}")]
+        public async Task<IActionResult> HasActiveReservation([FromRoute] string licensePlate, [FromRoute] DateTime time)
+        {
+            ReadReservationDto? dto = await _reser.GetActiveReservation(licensePlate, time);
+            if (dto == null)
+                return NotFound();
+            else
+                return Ok(dto);
+        }
     }
 }

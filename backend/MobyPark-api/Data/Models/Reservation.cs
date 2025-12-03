@@ -14,6 +14,7 @@ namespace MobyPark_api.Data.Models
         public DateTime EndTime { get; set; }
         public DateTime CreatedAt { get; set; }
         public float? Cost { get; set; }
+        public ReservationStatus Status {get; set; }
 
     }
 }

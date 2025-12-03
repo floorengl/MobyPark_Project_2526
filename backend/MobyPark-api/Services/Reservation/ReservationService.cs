@@ -106,11 +106,11 @@ public class ReservationService : IReservationService
         return start1 < end2 && start2 < end1;
     }
 
-    public async Task<bool> WillParkingLotOverflow(DateTime start, DateTime end, long parkingLotId)
+    public async Task<bool> WillParkingLotOverflow(DateTime start, DateTime end, long parkingLotId, int baseLoad = 0)
     {
         (DateTime start, DateTime end)[] intersections = _db.Reservations
             .Where(r => r.ParkingLotId == parkingLotId && start < r.EndTime && r.StartTime < end)
-            .Where(r => true) // WHERE RESERVATION IS PAYED FOR. CHANGE THIS WHEN PAYMENTS ARE PRESENT
+            .Where(r => r.Status == ReservationStatus.UnUsed)
             .AsEnumerable()
             .Select(r => (r.StartTime, r.EndTime))
             .ToArray();
@@ -121,7 +121,7 @@ public class ReservationService : IReservationService
         if (parkinglot == null) 
             throw new ArgumentException("Parkinglot does not exist in database");
 
-        if (maxOverlap + 1 > parkinglot.Capacity)
+        if (maxOverlap + 1 + baseLoad > parkinglot.Capacity)
             return true;
         else
             return false;
@@ -134,10 +134,10 @@ public class ReservationService : IReservationService
     /// <param name="end"></param>
     /// <param name="OrderedIntervalCollection">a collection of start and end time with which a intersection might take place.</param>
     /// <returns></returns>
-    public static int CountMaxOverlap(DateTime start, DateTime end, (DateTime start, DateTime end)[] OrderedIntervalCollection)
+    public static int CountMaxOverlap(DateTime start, DateTime end, (DateTime start, DateTime end)[] intervals)
     {
         List<(DateTime start, DateTime end)> overlappingIntervals = new();
-        foreach (var interval in OrderedIntervalCollection)
+        foreach (var interval in intervals)
         {
             if (DoTimesOverlap(start, end, interval.start, interval.end))
             {
@@ -180,6 +180,26 @@ public class ReservationService : IReservationService
             return (totalTime.Days * lot.DayTariff.Value);
         }
         return (int)totalTime.TotalHours * lot.Tariff!.Value;
+    }
+
+    public async Task<ReadReservationDto?> GetActiveReservation(string licensePlate, DateTime time)
+    {
+        var reservation = await _db.Reservations
+            .Where(
+                r => r.LicensePlate == licensePlate 
+                && r.StartTime < time 
+                && r.EndTime > time)
+            .FirstOrDefaultAsync();
+
+        return ReservationToReadDto(reservation);
+    }
+
+    public async Task ConsumeReservation(string guid)
+    {
+        var reservation = await _db.Reservations.FindAsync(guid);
+        if (reservation == null) throw new ArgumentException("reservation does not exist");
+        reservation.Status = ReservationStatus.Used;
+        await _db.SaveChangesAsync();
     }
 }
 

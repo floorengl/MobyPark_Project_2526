@@ -4,25 +4,47 @@ using MobyPark_api.Dtos;
 public sealed class LicenseplateService : ILicenseplateService
 {
     private readonly AppDbContext _db;
-    private readonly IConfiguration _cfg;
     private readonly ISessionService _sessions;
+    private readonly IReservationService _reservations;
 
-    public LicenseplateService(AppDbContext db, IConfiguration cfg, ISessionService sessions)
-        => (_db, _cfg, _sessions) = (db, cfg, sessions);
+    public LicenseplateService(AppDbContext db, ISessionService sessions, IReservationService reservations)
+        => (_db, _sessions, _reservations) = (db, sessions, reservations);
 
 
     // POST Licenseplate / Start session
     public async Task<long> LicenseplatesAsync(CheckInDto dto, CancellationToken cto)
     {
+        // input validation
         var lot = await _db.ParkingLots.FindAsync(dto.ParkingLotId);
         if (lot == null) return 0;
 
         int occupied = await _db.Sessions.CountAsync(ses => ses.ParkingLotId == lot.Id && ses.Stopped == null);
+        var reservation = await _reservations.GetActiveReservation(dto.LicensePlateName, DateTime.UtcNow);
+
+        // check if space is available accounting for a possible reservation
+        if (reservation != null)
+        {
+            if (occupied > lot.Capacity)
+            {
+                return 0;
+            }
+            else
+            {
+                await _reservations.ConsumeReservation(reservation.Id);
+            }
+        }
+        else
+        {
+            if (await _reservations.WillParkingLotOverflow(DateTime.UtcNow, DateTime.UtcNow.AddHours(4), dto.ParkingLotId + occupied))
+            {
+                return 0;
+            }
+        }
+
         var plate = new Licenseplate { LicensePlateName = dto.LicensePlateName };
         _db.LicensePlates.Add(plate);
         await _db.SaveChangesAsync(cto);
-        var parkingLotId = _cfg.GetValue<long>("DefaultParkingLotId", 1L);
-        await _sessions.StartForPlateAsync(parkingLotId, plate.Id, cto);
+        await _sessions.StartForPlateAsync(dto.ParkingLotId, plate.Id, cto);
         return plate.Id;
     }
 
@@ -33,9 +55,12 @@ public sealed class LicenseplateService : ILicenseplateService
             .FirstOrDefaultAsync(p => p.LicensePlateName == plateText, ct);
 
         if (plate == null) return;
+        long lotId = await _db.Sessions
+            .Where(s => s.Stopped == null && s.LicensePlate.LicensePlateName == plateText)
+            .Select(s => s.ParkingLotId)
+            .FirstOrDefaultAsync();
 
-        var parkingLotId = _cfg.GetValue<long>("DefaultParkingLotId", 1L);
-        await _sessions.StopOpenForPlateAsync(parkingLotId, plate.Id, ct);
+        await _sessions.StopOpenForPlateAsync(lotId, plate.Id, ct);
 
         _db.LicensePlates.Remove(plate);
         await _db.SaveChangesAsync(ct);
