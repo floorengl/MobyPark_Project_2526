@@ -2,7 +2,7 @@ name: .NET CI
 
 on:
   push:
-    branches: [ main, Developer ]
+    branches: [ main ]
   pull_request:
 
 permissions:
@@ -15,7 +15,7 @@ env:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, mobypark]
     steps:
       - uses: actions/checkout@v4
 
@@ -39,15 +39,14 @@ jobs:
           name: test-results
           path: '**/test_results.trx'
 
-  docker-build-check:
+  deploy:
     needs: build-and-test
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, mobypark]
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build API image (no push)
-        uses: docker/build-push-action@v6
-        with:
-          context: backend/MobyPark-api
-          file: backend/MobyPark-api/Dockerfile
-          push: false
+      - name: Deployment
+        run: |
+          docker compose down
+          docker compose up -d --build
+
