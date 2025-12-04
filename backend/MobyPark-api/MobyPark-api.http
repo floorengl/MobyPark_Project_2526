@@ -1,15 +1,28 @@
 @api_HostAddress = http://localhost:5240
 @session_token = {{login.response.body.accessToken}}
 
-
-### POST 
-POST {{api_HostAddress}}/licenseplate
+###
+POST {{api_HostAddress}}/payments/AddPayment
 Content-Type: application/json
 
 {
-  "licenseplatename": "ABC-99-D"
+  "id": 0,
+  "createdAt": "2025-12-04T12:00:00Z",
+  "status": 0,
+  "hash": "TEST_HASH_123",
+  "tData": "Some transaction data"
 }
 
+
+### POST 
+POST {{api_HostAddress}}/licenseplate
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoibmV3YWRtaW4xMjMiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJVc2VyIiwiZXhwIjoxNzY0ODQ5NjY2LCJpc3MiOiJtb2J5cGFyayIsImF1ZCI6Im1vYnlwYXJrLWNsaWVudCJ9.BcmaWlwLabCEaadvOn2-uV1VsZ1aBgVhw3JC-bClAKg
+Content-Type: application/json
+
+{
+  "parkingLotId": 1,
+  "licenseplatename": "ABC-99-D"
+}
 
 ### GET ALL
 GET {{api_HostAddress}}/licenseplate
