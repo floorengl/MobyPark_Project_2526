@@ -43,7 +43,6 @@ public sealed class SessionService : ISessionService
     public async Task StopOpenForPlateAsync(long parkingLotId, long licensePlateId, CancellationToken ct)
     {
         var session = await _db.Sessions
-            .Include(s => s.ParkingLot)
             .FirstOrDefaultAsync(s => s.ParkingLotId == parkingLotId
                                    && s.LicensePlateId == licensePlateId
                                    && s.Stopped == null, ct);
@@ -57,8 +56,11 @@ public sealed class SessionService : ISessionService
         await _db.SaveChangesAsync(ct);
 
 
-        var pricePerHour = session.ParkingLot?.Tariff ?? 0;
-        session.Cost = (decimal)(minutes / 60.0) * pricePerHour;
+        var parkinglot = await _db.ParkingLots
+            .FirstOrDefaultAsync(p => p.Id == parkingLotId);
+
+        var pricePerHour = parkinglot?.Tariff ?? 0;
+        session.Cost = (float)(minutes / 60.0) * pricePerHour;
 
         var tData = new
         {
