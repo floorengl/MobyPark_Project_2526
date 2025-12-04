@@ -3,15 +3,19 @@
 
 ###
 POST {{api_HostAddress}}/payments/AddPayment
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoibmV3YWRtaW4xMjMiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJVc2VyIiwiZXhwIjoxNzY0ODU1NTE5LCJpc3MiOiJtb2J5cGFyayIsImF1ZCI6Im1vYnlwYXJrLWNsaWVudCJ9.2XCdNu3QPewgGpoIuE8XMZarTOYE9Z67WkGJtlQY-n0
 Content-Type: application/json
 
 {
-  "id": 0,
-  "createdAt": "2025-12-04T12:00:00Z",
+  "id": 2,
+  "createdAt": "2025-12-04T12:00:00",
   "status": 0,
   "hash": "TEST_HASH_123",
   "tData": "Some transaction data"
 }
+
+###
+GET {{api_HostAddress}}/payments
 
 
 ### POST 

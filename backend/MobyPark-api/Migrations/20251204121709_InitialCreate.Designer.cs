@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MobyPark_api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251204103951_InitialCreate")]
+    [Migration("20251204121709_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />

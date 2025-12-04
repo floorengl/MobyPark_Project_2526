@@ -26,6 +26,7 @@ public class AppDbContext : DbContext
         b.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
         b.HasPostgresExtension("uuid-ossp");
         base.OnModelCreating(b);
+        b.Entity<Payment>().ToTable("payments");
         b.Entity<User>()
         .HasMany(u => u.Vehicles)
         .WithOne(v => v.User)
