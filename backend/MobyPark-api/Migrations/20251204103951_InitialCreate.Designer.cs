@@ -11,8 +11,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MobyPark_api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251127154625_id_generation_reservations")]
-    partial class id_generation_reservations
+    [Migration("20251204103951_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -115,6 +115,9 @@ namespace MobyPark_api.Migrations
                     b.Property<DateTime>("StartTime")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ParkingLotId");
@@ -157,6 +160,38 @@ namespace MobyPark_api.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Vehicles");
+                });
+
+            modelBuilder.Entity("Payment", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp")
+                        .HasColumnName("createdat");
+
+                    b.Property<string>("Hash")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("hash");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int")
+                        .HasColumnName("status");
+
+                    b.Property<string>("TData")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("tdata");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("payments", (string)null);
                 });
 
             modelBuilder.Entity("Session", b =>

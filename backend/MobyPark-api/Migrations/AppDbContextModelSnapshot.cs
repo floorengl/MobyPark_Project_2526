@@ -159,6 +159,38 @@ namespace MobyPark_api.Migrations
                     b.ToTable("Vehicles");
                 });
 
+            modelBuilder.Entity("Payment", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp")
+                        .HasColumnName("createdat");
+
+                    b.Property<string>("Hash")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("hash");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int")
+                        .HasColumnName("status");
+
+                    b.Property<string>("TData")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("tdata");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("payments", (string)null);
+                });
+
             modelBuilder.Entity("Session", b =>
                 {
                     b.Property<long>("Id")

@@ -12,6 +12,9 @@ namespace MobyPark_api.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.AlterDatabase()
+                .Annotation("Npgsql:PostgresExtension:uuid-ossp", ",,");
+
             migrationBuilder.CreateTable(
                 name: "licenseplates",
                 columns: table => new
@@ -43,6 +46,22 @@ namespace MobyPark_api.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ParkingLots", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "payments",
+                columns: table => new
+                {
+                    id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    createdat = table.Column<DateTime>(type: "timestamp", nullable: false),
+                    status = table.Column<int>(type: "int", nullable: false),
+                    hash = table.Column<string>(type: "text", nullable: false),
+                    tdata = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_payments", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -92,6 +111,30 @@ namespace MobyPark_api.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Reservations",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "uuid_generate_v4()"),
+                    ParkingLotId = table.Column<long>(type: "bigint", nullable: false),
+                    LicensePlate = table.Column<string>(type: "text", nullable: false),
+                    StartTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    EndTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Cost = table.Column<float>(type: "real", nullable: true),
+                    Status = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Reservations", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Reservations_ParkingLots_ParkingLotId",
+                        column: x => x.ParkingLotId,
+                        principalTable: "ParkingLots",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Vehicles",
                 columns: table => new
                 {
@@ -123,6 +166,11 @@ namespace MobyPark_api.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Reservations_ParkingLotId",
+                table: "Reservations",
+                column: "ParkingLotId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_sessions_LicensePlateId",
                 table: "sessions",
                 column: "LicensePlateId");
@@ -148,13 +196,19 @@ namespace MobyPark_api.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "ParkingLots");
+                name: "payments");
+
+            migrationBuilder.DropTable(
+                name: "Reservations");
 
             migrationBuilder.DropTable(
                 name: "sessions");
 
             migrationBuilder.DropTable(
                 name: "Vehicles");
+
+            migrationBuilder.DropTable(
+                name: "ParkingLots");
 
             migrationBuilder.DropTable(
                 name: "licenseplates");
