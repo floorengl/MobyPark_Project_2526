@@ -27,6 +27,8 @@ public class Program
         builder.Services.AddScoped<ISessionService, SessionService>();
         builder.Services.AddScoped<IReservationService, ReservationService>();
         builder.Services.AddScoped<IParkingLotService, ParkingLotService>();
+        builder.Services.AddScoped<IPaymentService, PaymentService>();
+        
 
 
         // JWT authentication.
@@ -99,12 +101,12 @@ public class Program
         app.MapControllers();
 
         // Auto-apply migrations.
-        using (var scope = app.Services.CreateScope())
-        {
-            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            if (Environment.GetEnvironmentVariable("IsXUnitTesting") != "True")
-                db.Database.Migrate();
-        }
+        // using (var scope = app.Services.CreateScope())
+        // {
+        //     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        //     if (Environment.GetEnvironmentVariable("IsXUnitTesting") != "True")
+        //         db.Database.Migrate();
+        // }
 
         app.Run();
     }

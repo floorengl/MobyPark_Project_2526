@@ -47,6 +47,6 @@ jobs:
 
       - name: Deployment
         run: |
-          docker compose down
+          docker compose down -v || true
           docker compose up -d --build
 
