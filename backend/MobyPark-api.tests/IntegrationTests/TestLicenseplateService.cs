@@ -1,4 +1,5 @@
-﻿using MobyPark_api.Data.Models;
+﻿using Microsoft.Identity.Client;
+using MobyPark_api.Data.Models;
 using MobyPark_api.Dtos;
 using MobyPark_api.Dtos.Reservation;
 
@@ -10,12 +11,14 @@ namespace MobyPark_api.tests.IntegrationTests
         private readonly DatabaseFixture _fixture;
         public TestLicenseplateService(DatabaseFixture fixture) => _fixture = fixture;
 
+
         private (ILicenseplateService, AppDbContext) GetSut()
         {
             var db = _fixture.CreateContext();
-            var serice = new LicenseplateService(db, new SessionService(db), new ReservationService(db));
+            var serice = new LicenseplateService(db, new SessionService(db, new PaymentService(db)), new ReservationService(db));
             return (serice, db);
         }
+
 
         private ParkingLot AddParking(AppDbContext db)
         {
@@ -33,6 +36,7 @@ namespace MobyPark_api.tests.IntegrationTests
             return parkinglot;
         }
 
+
         [Fact]
         public async Task Test_LicenseplatesAsync_HappyInsertion()
         {
@@ -41,7 +45,7 @@ namespace MobyPark_api.tests.IntegrationTests
             var (SUT, db) = GetSut();
             var lot = AddParking(db);
 
-            var checkinDTO = new CheckInDto() {ParkingLotId = lot.Id, LicensePlateName = "2-platy-1" };
+            var checkinDTO = new CheckInDto() {ParkingLotId = lot.Id, LicensePlateName = "2-platy-1", PaymentMethodId = "u" };
             var canceler = new CancellationToken();
 
             // act
@@ -51,6 +55,29 @@ namespace MobyPark_api.tests.IntegrationTests
             // assert
             Assert.NotNull(plate);
         }
+
+
+        [Fact]
+        public async Task Test_LicenseplatesAsync_CannotEnterTwice()
+        {
+            // arrange
+            await _fixture.ResetDB();
+            var (SUT, db) = GetSut();
+            var lot = AddParking(db);
+
+            var checkinDTO = new CheckInDto() { ParkingLotId = lot.Id, LicensePlateName = "2-platy-1", PaymentMethodId = "u" };
+            var canceler = new CancellationToken();
+
+            // act
+            await SUT.LicenseplatesAsync(checkinDTO, canceler);
+             var secondCheckin = await SUT.LicenseplatesAsync(checkinDTO, canceler);
+            var plate = await SUT.GetByPlateAsync("2-platy-1", canceler);
+
+            // assert
+            Assert.NotNull(plate);
+            Assert.Equal("Licenseplate is already checked In", secondCheckin.Item2);
+        }
+
 
         [Fact]
         public async Task Test_DeleteAsync_TestCheckout()
@@ -73,6 +100,7 @@ namespace MobyPark_api.tests.IntegrationTests
             Assert.Null(plate);
         }
 
+
         [Fact]
         public async Task Test_LicenseplatesAsync_CheckingInTooManyCars()
         {
@@ -94,6 +122,7 @@ namespace MobyPark_api.tests.IntegrationTests
             Assert.Null(plate);
         }
 
+
         [Fact]
         public async Task Test_LicenseplatesAsync_DriveOutCarAndAddMore()
         {
@@ -102,9 +131,9 @@ namespace MobyPark_api.tests.IntegrationTests
             var (SUT, db) = GetSut();
             var lot = AddParking(db);
 
-            var checkinDTO1 = new CheckInDto() { ParkingLotId = lot.Id, LicensePlateName = "erikman" };
-            var checkinDTO2 = new CheckInDto() { ParkingLotId = lot.Id, LicensePlateName = "benman" };
-            var checkinDTO3TooMuch = new CheckInDto() { ParkingLotId = lot.Id, LicensePlateName = "gertman" };
+            var checkinDTO1 = new CheckInDto() { ParkingLotId = lot.Id, LicensePlateName = "erikman", PaymentMethodId = "u" };
+            var checkinDTO2 = new CheckInDto() { ParkingLotId = lot.Id, LicensePlateName = "benman", PaymentMethodId = "u" };
+            var checkinDTO3TooMuch = new CheckInDto() { ParkingLotId = lot.Id, LicensePlateName = "gertman", PaymentMethodId = "u" };
             var canceler = new CancellationToken();
 
             // act
@@ -117,6 +146,7 @@ namespace MobyPark_api.tests.IntegrationTests
             Assert.True(actual_parked.Item1 != 0);
             Assert.Equal(0, actual_overflow.Item1);
         }
+
 
         [Fact]
         public async Task Test_LicenseplatesAsync_ReservationBlocksOtherCars()
@@ -139,8 +169,8 @@ namespace MobyPark_api.tests.IntegrationTests
             var actualReservation = await reservationSerivce.Post(reservation);
             await reservationSerivce.PayForReservation(actualReservation.Id);
 
-            var checkinDTO1 = new CheckInDto() { ParkingLotId = lot.Id, LicensePlateName = "gijsman" };
-            var checkinDTO2TooMuch = new CheckInDto() { ParkingLotId = lot.Id, LicensePlateName = "albertman" };
+            var checkinDTO1 = new CheckInDto() { ParkingLotId = lot.Id, LicensePlateName = "gijsman", PaymentMethodId = "u" };
+            var checkinDTO2TooMuch = new CheckInDto() { ParkingLotId = lot.Id, LicensePlateName = "albertman", PaymentMethodId = "u" };
             var canceler = new CancellationToken();
 
             // act
@@ -152,6 +182,152 @@ namespace MobyPark_api.tests.IntegrationTests
             Assert.NotNull(actualReservation);
             Assert.True(actual_parked.Item1 != 0);
             Assert.Equal(0, actual_overflow.Item1);
+        }
+        
+
+        [Fact]
+        public async Task Test_IsCheckInLegal_HappyFlow()
+        {
+            // arrange
+            await _fixture.ResetDB();
+            var (SUT, db) = GetSut();
+            var lot = AddParking(db);
+
+            // act
+            var checkin = new CheckInDto() { LicensePlateName = "joranman", ParkingLotId = lot.Id, PaymentMethodId = "trust me" };
+
+            var actual = await SUT.IsCheckInLegal(checkin);
+
+            // assert
+            Assert.Equal("", actual.reason);
+        }
+
+
+        [Fact]
+        public async Task Test_IsCheckInLegal_FilledReservationsWithBlockOthers()
+        {
+            // arrange
+            await _fixture.ResetDB();
+            var (SUT, db) = GetSut();
+            var lot = AddParking(db);
+
+
+            var reservationSerivce = new ReservationService(db);
+
+            var reservation = new WriteReservationDto()
+            {
+                LicensePlate = "berendman",
+                EndTime = DateTime.UtcNow.AddHours(3),
+                StartTime = DateTime.UtcNow,
+                ParkingLotId = lot.Id
+            };
+
+            var actualReservation = await reservationSerivce.Post(reservation);
+            await reservationSerivce.PayForReservation(actualReservation.Id);
+
+            var reservation2 = new WriteReservationDto()
+            {
+                LicensePlate = "eimertman",
+                EndTime = DateTime.UtcNow.AddHours(1),
+                StartTime = DateTime.UtcNow,
+                ParkingLotId = lot.Id
+            };
+
+            var actualReservation2 = await reservationSerivce.Post(reservation);
+            await reservationSerivce.PayForReservation(actualReservation2.Id);
+
+            var checkin = new CheckInDto() { LicensePlateName = "joranman", ParkingLotId = lot.Id, PaymentMethodId = "trust me" };
+
+            var actual = await SUT.IsCheckInLegal(checkin);
+
+            Assert.Equal("parking lot is full", actual.reason);
+        }
+
+
+        [Fact]
+        public async Task Test_IsCheckInLegal_ParkingLotDoesNotExist()
+        {
+            // arrange
+            await _fixture.ResetDB();
+            var (SUT, db) = GetSut();
+            var lot = AddParking(db);
+
+            // act
+            var checkin = new CheckInDto() { LicensePlateName = "joranman", ParkingLotId = -5, PaymentMethodId = "trust me" };
+
+            var actual = await SUT.IsCheckInLegal(checkin);
+
+            // assert
+            Assert.Equal("parking lot not found", actual.reason);
+        }
+
+        [Fact]
+        public async Task Test_IsCheckInLegal_ReservationCantEnterBecauseFull()
+        {
+            // arrange
+            await _fixture.ResetDB();
+            var (SUT, db) = GetSut();
+            var lot = AddParking(db);
+
+            var reservationSerivce = new ReservationService(db);
+
+            var reservation = new WriteReservationDto()
+            {
+                LicensePlate = "thomasman",
+                EndTime = DateTime.UtcNow.AddHours(3),
+                StartTime = DateTime.UtcNow,
+                ParkingLotId = lot.Id
+            };
+
+            var actualReservation = await reservationSerivce.Post(reservation);
+            await reservationSerivce.PayForReservation(actualReservation.Id);
+
+            db.Sessions.Add(new Session() { ParkingLotId = lot.Id, PlateText = ""});
+            db.Sessions.Add(new Session() { ParkingLotId = lot.Id, PlateText = "" });
+            
+            await db.SaveChangesAsync();
+
+            // act
+            var checkin = new CheckInDto() { LicensePlateName = "thomasman", ParkingLotId = lot.Id };
+
+            var actual = await SUT.IsCheckInLegal(checkin);
+
+            // assert
+            Assert.Equal("parking lot is full. despite reservation", actual.reason);
+        }
+
+        [Fact]
+        public async Task Test_IsCheckInLegal_ReservationCantEnterOneSpaceFree()
+        {
+            // arrange
+            await _fixture.ResetDB();
+            var (SUT, db) = GetSut();
+            var lot = AddParking(db);
+
+            var reservationSerivce = new ReservationService(db);
+
+            var reservation = new WriteReservationDto()
+            {
+                LicensePlate = "thomasman",
+                EndTime = DateTime.UtcNow.AddHours(3),
+                StartTime = DateTime.UtcNow,
+                ParkingLotId = lot.Id
+            };
+
+            var actualReservation = await reservationSerivce.Post(reservation);
+            await reservationSerivce.PayForReservation(actualReservation.Id);
+
+            db.Sessions.Add(new Session() { ParkingLotId = lot.Id, PlateText = "" });
+
+            await db.SaveChangesAsync();
+
+            // act
+            var checkin = new CheckInDto() { LicensePlateName = "thomasman", ParkingLotId = lot.Id };
+
+            var actual = await SUT.IsCheckInLegal(checkin);
+
+            // assert
+            Assert.Equal("", actual.reason);
         }
     }
 }

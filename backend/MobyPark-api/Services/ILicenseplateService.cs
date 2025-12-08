@@ -7,5 +7,6 @@ public interface ILicenseplateService
     Task DeleteAsync(string plateText, CancellationToken ct);
     Task<IReadOnlyList<LicenseplateDto>> GetAllAsync(CancellationToken ct);
     Task<LicenseplateDto?> GetByPlateAsync(string plate, CancellationToken ct);
+    Task<(bool legal, string reason)> IsCheckInLegal(CheckInDto dto);
 
 }

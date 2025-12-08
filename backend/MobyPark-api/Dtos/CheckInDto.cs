@@ -8,6 +8,7 @@ namespace MobyPark_api.Dtos
         public required string LicensePlateName { get; set; }
         
         public required long ParkingLotId { get; set; }
+        public string? PaymentMethodId { get; set; } = string.Empty;
 
     }
 }

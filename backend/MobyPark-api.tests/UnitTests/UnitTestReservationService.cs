@@ -1,7 +1,7 @@
 ﻿
-
-
-    public class UnitTestReservationService
+namespace MobyPark_api.tests.UnitTests
+{
+public class UnitTestReservationService
     {
 
         public ((DateTime, DateTime, DateTime, DateTime), bool) GetDataFor_Test_DoTimesOverlap(int i)
@@ -81,3 +81,4 @@
 
         }
     }
+}

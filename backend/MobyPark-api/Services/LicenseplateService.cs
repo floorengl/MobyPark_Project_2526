@@ -14,32 +14,10 @@ public sealed class LicenseplateService : ILicenseplateService
     // POST Licenseplate / Start session
     public async Task<(long, string)> LicenseplatesAsync(CheckInDto dto, CancellationToken cto)
     {
-        // input validation
-        var lot = await _db.ParkingLots.FindAsync(dto.ParkingLotId);
-        if (lot == null)
-            throw new ArgumentException("Parkinglot not found");
-
-        int occupied = await _db.Sessions.CountAsync(ses => ses.ParkingLotId == lot.Id && ses.Stopped == null);
-        var reservation = await _reservations.GetActiveReservation(dto.LicensePlateName, DateTime.UtcNow);
-
-        // check if space is available accounting for a possible reservation
-        if (reservation != null)
+        var legallity = await IsCheckInLegal(dto);
+        if (!legallity.legal)
         {
-            if (occupied > lot.Capacity)
-            {
-                return (0, "parking lot is full. despite reservation");
-            }
-            else
-            {
-                await _reservations.ConsumeReservation(reservation.Id);
-            }
-        }
-        else
-        {
-            if (await _reservations.WillParkingLotOverflow(DateTime.UtcNow, DateTime.UtcNow.AddHours(4), dto.ParkingLotId, occupied))
-            {
-                return (0, "parking lot is full");
-            }
+            return (0, legallity.reason);
         }
 
         var plate = new Licenseplate { LicensePlateName = dto.LicensePlateName };
@@ -90,5 +68,49 @@ public sealed class LicenseplateService : ILicenseplateService
             .AsNoTracking()
             .FirstOrDefaultAsync(l => l.LicensePlateName == key, ct);
         return x is null ? null : new LicenseplateDto { LicensePlateName = x.LicensePlateName };
+    }
+
+    public async Task<(bool legal, string reason)> IsCheckInLegal(CheckInDto dto)
+    {
+        // input validation
+        var lot = await _db.ParkingLots.FindAsync(dto.ParkingLotId);
+        if (lot == null)
+            return (false, "parking lot not found");
+
+        int occupied = await _db.Sessions.CountAsync(ses => ses.ParkingLotId == lot.Id && ses.Stopped == null);
+        var reservation = await _reservations.GetActiveReservation(dto.LicensePlateName, DateTime.UtcNow);
+
+        // check if space is available accounting for a possible reservation
+        if (reservation != null)
+        {
+            if (occupied >= lot.Capacity)
+            {
+                return (false, "parking lot is full. despite reservation");
+            }
+            else
+            {
+                await _reservations.ConsumeReservation(reservation.Id);
+            }
+        }
+        else
+        {
+            if (string.IsNullOrEmpty(dto.PaymentMethodId))
+            {
+                return (false, "payment method must be provided, because no reservation found");
+            }
+            if (dto.PaymentMethodId.Contains("untrusted")) // Call payment gateway here to verify payment method
+            {
+                return (false, "payment method doesn't work");
+            }
+            if (await _reservations.WillParkingLotOverflow(DateTime.UtcNow, DateTime.UtcNow.AddHours(4), dto.ParkingLotId, occupied))
+            {
+                return (false, "parking lot is full");
+            }
+        }
+
+        if (_db.Sessions.Any(ses => ses.LicensePlate.LicensePlateName == dto.LicensePlateName))
+            return (false, "Licenseplate is already checked In");
+
+        return (true, "");
     }
 }
