@@ -16,7 +16,8 @@ public sealed class LicenseplateService : ILicenseplateService
     {
         // input validation
         var lot = await _db.ParkingLots.FindAsync(dto.ParkingLotId);
-        if (lot == null) return (0, "parking lot not found");
+        if (lot == null)
+            throw new ArgumentException("Parkinglot not found");
 
         int occupied = await _db.Sessions.CountAsync(ses => ses.ParkingLotId == lot.Id && ses.Stopped == null);
         var reservation = await _reservations.GetActiveReservation(dto.LicensePlateName, DateTime.UtcNow);

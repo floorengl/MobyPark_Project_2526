@@ -45,6 +45,7 @@ public sealed class SessionService : ISessionService
         var minutes = Math.Max(1, (int)Math.Ceiling((session.Stopped.Value - session.Started).TotalMinutes));
         session.DurationMinutes = (short)Math.Min(short.MaxValue, minutes);
         session.Cost = null;
+        session.PlateText = "";
 
         await _db.SaveChangesAsync(ct);
     }
