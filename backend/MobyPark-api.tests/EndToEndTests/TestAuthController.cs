@@ -1,4 +1,5 @@
 ﻿using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace MobyPark_api.tests.EndToEndTests
 {
@@ -12,6 +13,8 @@ namespace MobyPark_api.tests.EndToEndTests
         [Fact]
         public async Task CanCreateNewAccount()
         {
+            await _appfixutre.ResetDB();
+
             Dictionary<string, string> NewAccount = new()
             {
                 {"username", "ben" },
@@ -27,6 +30,8 @@ namespace MobyPark_api.tests.EndToEndTests
         [Fact]
         public async Task CanLoginWithCreatedAccount()
         {
+            await _appfixutre.ResetDB();
+
             Dictionary<string, string> Account = new()
             {
                 {"username", "jan" },
@@ -48,31 +53,42 @@ namespace MobyPark_api.tests.EndToEndTests
         [Fact]
         public async Task CanRetrieveProfileWithValidJWT()
         {
-            Dictionary<string, string> Account = new()
+            await _appfixutre.ResetDB();
+
+            // Arrange: create a test account
+            var account = new Dictionary<string, string>
             {
-                {"username", "piet" },
-                {"password", "pietervantoettoet" }
+                { "username", "piet" },
+                { "password", "pietervantoettoet" }
             };
 
-            JsonContent CreatedAccount = JsonContent.Create(Account);
-            var SUT = _appfixutre.CreateClient();
-            HttpResponseMessage createResponse = await SUT.PostAsync("register", CreatedAccount);
+            var client = _appfixutre.CreateClient();
+            var createContent = JsonContent.Create(account);
 
-            Assert.Equal(System.Net.HttpStatusCode.Created, createResponse.StatusCode);
+            // Act: Register the account
+            var registerResponse = await client.PostAsync("register", createContent);
+            Assert.Equal(System.Net.HttpStatusCode.Created, registerResponse.StatusCode);
 
-            // Then login with created account
-            HttpResponseMessage loginResponse = await SUT.PostAsync("login", CreatedAccount);
-
+            // Act: Login with the account
+            var loginResponse = await client.PostAsync("login", createContent);
             Assert.Equal(System.Net.HttpStatusCode.OK, loginResponse.StatusCode);
 
-            var loginContent = await loginResponse.Content.ReadFromJsonAsync<Dictionary<string, string>>();
-            string token = loginContent!["token"];
 
-            // Then retrieve profile with JWT
-            SUT.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-            HttpResponseMessage profileResponse = await SUT.GetAsync("profile");
+            var loginJson = await loginResponse.Content.ReadFromJsonAsync<JsonElement>();
+            string jwt = loginJson.GetProperty("token").GetProperty("accessToken").GetString()!;
 
+
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwt);
+
+            // Act: Retrieve profile
+            var profileResponse = await client.GetAsync("profile");
             Assert.Equal(System.Net.HttpStatusCode.OK, profileResponse.StatusCode);
+
+
+            var profile = await profileResponse.Content.ReadFromJsonAsync<ProfileResponseDto>()!;
+
+            // Assert: username matches
+            Assert.Equal(account["username"], profile.Username);
         }
     }
 }
