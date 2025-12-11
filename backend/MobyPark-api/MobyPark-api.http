@@ -40,8 +40,8 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hc
 Content-Type: application/json
 
 {
-  "parkingLotId": 1,
-  "licenseplatename": "ABC-99-D"
+  "parkingLotId": 2,
+  "licenseplatename": "ABC-99-C"
 }
 
 ### GET ALL
@@ -54,8 +54,8 @@ GET {{api_HostAddress}}/licenseplate/ABC-99-D
 
 // DELETE
 ###
-DELETE {{api_HostAddress}}/licenseplate/ABC-99-D
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjIiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoibmV3YWRtaW4xMjMiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJBRE1JTiIsImV4cCI6MTc2MDM2NjI5MCwiaXNzIjoibW9ieXBhcmsiLCJhdWQiOiJtb2J5cGFyay1jbGllbnQifQ.X402G5eZZepOdyUA-uyOucq381ruw6hPWXDcaem1Tps
+DELETE {{api_HostAddress}}/licenseplate/ABC-99-C
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoibmV3YWRtaW4xMjMiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJBZG1pbiIsImV4cCI6MTc2NTQ4NzkzNiwiaXNzIjoibW9ieXBhcmsiLCJhdWQiOiJtb2J5cGFyay1jbGllbnQifQ.Y4TMLpU1qeVUqeI2OqC6K_ySsnQVqpxTCZ5fMlQFGFU
 
 
 ###

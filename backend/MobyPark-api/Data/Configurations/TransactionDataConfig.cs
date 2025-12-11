@@ -19,7 +19,7 @@ public sealed class TransactionDataConfig : IEntityTypeConfiguration<Transaction
 
         e.Property(x => x.Date)
             .HasColumnName("date")
-            .HasColumnType("timestamp");
+            .HasColumnType("timestamptz");
 
         e.Property(x => x.Method)
             .HasColumnName("method")

@@ -172,7 +172,7 @@ namespace MobyPark_api.Migrations
                         .HasColumnName("amount");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp")
+                        .HasColumnType("timestamptz")
                         .HasColumnName("createdat");
 
                     b.Property<string>("Hash")
@@ -251,7 +251,7 @@ namespace MobyPark_api.Migrations
                         .HasColumnName("bank");
 
                     b.Property<DateTime>("Date")
-                        .HasColumnType("timestamp")
+                        .HasColumnType("timestamptz")
                         .HasColumnName("date");
 
                     b.Property<string>("Issuer")

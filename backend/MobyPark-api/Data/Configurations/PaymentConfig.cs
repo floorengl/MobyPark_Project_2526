@@ -19,7 +19,7 @@ public sealed class PaymentConfig : IEntityTypeConfiguration<Payment>
 
         e.Property(x => x.CreatedAt)
             .HasColumnName("createdat")
-            .HasColumnType("timestamp");
+            .HasColumnType("timestamptz");
 
         e.Property(x => x.Status)
             .HasColumnName("status")

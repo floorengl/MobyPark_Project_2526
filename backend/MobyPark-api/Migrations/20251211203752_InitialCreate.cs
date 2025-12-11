@@ -54,7 +54,7 @@ namespace MobyPark_api.Migrations
                 {
                     transaction_id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "uuid_generate_v4()"),
                     amount = table.Column<decimal>(type: "numeric", nullable: false),
-                    date = table.Column<DateTime>(type: "timestamp", nullable: false),
+                    date = table.Column<DateTime>(type: "timestamptz", nullable: false),
                     method = table.Column<string>(type: "text", nullable: false),
                     issuer = table.Column<string>(type: "text", nullable: false),
                     bank = table.Column<string>(type: "text", nullable: false)
@@ -140,7 +140,7 @@ namespace MobyPark_api.Migrations
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "uuid_generate_v4()"),
                     amount = table.Column<decimal>(type: "numeric", nullable: false),
-                    createdat = table.Column<DateTime>(type: "timestamp", nullable: false),
+                    createdat = table.Column<DateTime>(type: "timestamptz", nullable: false),
                     status = table.Column<int>(type: "int", nullable: false),
                     hash = table.Column<string>(type: "text", nullable: false),
                     transaction_id = table.Column<Guid>(type: "uuid", nullable: false)

@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MobyPark_api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251211192802_InitialCreate")]
+    [Migration("20251211203752_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -175,7 +175,7 @@ namespace MobyPark_api.Migrations
                         .HasColumnName("amount");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp")
+                        .HasColumnType("timestamptz")
                         .HasColumnName("createdat");
 
                     b.Property<string>("Hash")
@@ -254,7 +254,7 @@ namespace MobyPark_api.Migrations
                         .HasColumnName("bank");
 
                     b.Property<DateTime>("Date")
-                        .HasColumnType("timestamp")
+                        .HasColumnType("timestamptz")
                         .HasColumnName("date");
 
                     b.Property<string>("Issuer")
