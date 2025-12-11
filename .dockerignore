@@ -1,0 +1,10 @@
+# speed up docker builds
+bin
+obj
+*.user
+*.suo
+*.swp
+.DS_Store
+
+# exclude the test project from the image
+MobyPark-api.tests/

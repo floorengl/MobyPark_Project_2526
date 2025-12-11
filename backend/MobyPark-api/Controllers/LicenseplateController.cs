@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using MobyPark_api.Dtos;
 
 [ApiController]
 [Route("licenseplate")]
@@ -10,7 +11,7 @@ public sealed class LicenseplateController : ControllerBase
 
     // POST /licenseplate
     [HttpPost]
-    public async Task<IActionResult> Licenseplates([FromBody] LicenseplateDto dto, CancellationToken cto)
+    public async Task<IActionResult> Licenseplates([FromBody] CheckInDto dto, CancellationToken cto)
     {
         var id = await _license.LicenseplatesAsync(dto, cto);
         return StatusCode(201);

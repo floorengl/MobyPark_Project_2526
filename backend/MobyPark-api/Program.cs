@@ -1,10 +1,11 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.OpenApi.Models;
 using System.Security.Claims;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using MobyPark_api.Services.ParkingLot;
 
 
 
@@ -23,6 +24,10 @@ public class Program
         builder.Services.AddScoped<IAuthService, AuthService>();
         builder.Services.AddScoped<ILicenseplateService, LicenseplateService>();
         builder.Services.AddScoped<ISessionService, SessionService>();
+        builder.Services.AddScoped<IReservationService, ReservationService>();
+        builder.Services.AddScoped<IParkingLotService, ParkingLotService>();
+        builder.Services.AddScoped<IPaymentService, PaymentService>();
+        
 
 
         // JWT authentication.
@@ -94,11 +99,12 @@ public class Program
         app.MapControllers();
 
         // Auto-apply migrations.
-        using (var scope = app.Services.CreateScope())
-        {
-            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            db.Database.Migrate();
-        }
+        // using (var scope = app.Services.CreateScope())
+        // {
+        //     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        //     if (Environment.GetEnvironmentVariable("IsXUnitTesting") != "True")
+        //         db.Database.Migrate();
+        // }
 
         app.Run();
     }

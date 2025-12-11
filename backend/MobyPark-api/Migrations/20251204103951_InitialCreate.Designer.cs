@@ -11,8 +11,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MobyPark_api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251013124546_InitialDB")]
-    partial class InitialDB
+    [Migration("20251204103951_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -22,6 +22,7 @@ namespace MobyPark_api.Migrations
                 .HasAnnotation("ProductVersion", "9.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
+            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "uuid-ossp");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("Licenseplate", b =>
@@ -88,6 +89,42 @@ namespace MobyPark_api.Migrations
                     b.ToTable("ParkingLots");
                 });
 
+            modelBuilder.Entity("MobyPark_api.Data.Models.Reservation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("uuid_generate_v4()");
+
+                    b.Property<float?>("Cost")
+                        .HasColumnType("real");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("EndTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LicensePlate")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<long>("ParkingLotId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("StartTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParkingLotId");
+
+                    b.ToTable("Reservations");
+                });
+
             modelBuilder.Entity("MobyPark_api.Data.Models.Vehicle", b =>
                 {
                     b.Property<long>("Id")
@@ -123,6 +160,38 @@ namespace MobyPark_api.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Vehicles");
+                });
+
+            modelBuilder.Entity("Payment", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp")
+                        .HasColumnName("createdat");
+
+                    b.Property<string>("Hash")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("hash");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int")
+                        .HasColumnName("status");
+
+                    b.Property<string>("TData")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("tdata");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("payments", (string)null);
                 });
 
             modelBuilder.Entity("Session", b =>
@@ -222,6 +291,17 @@ namespace MobyPark_api.Migrations
                         .HasDatabaseName("ux_users_username");
 
                     b.ToTable("users", (string)null);
+                });
+
+            modelBuilder.Entity("MobyPark_api.Data.Models.Reservation", b =>
+                {
+                    b.HasOne("MobyPark_api.Data.Models.ParkingLot", "ParkingLot")
+                        .WithMany()
+                        .HasForeignKey("ParkingLotId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ParkingLot");
                 });
 
             modelBuilder.Entity("MobyPark_api.Data.Models.Vehicle", b =>

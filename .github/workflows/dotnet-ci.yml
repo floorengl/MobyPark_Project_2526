@@ -1,0 +1,52 @@
+name: .NET CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_VERSION: '9.0.x'
+  TEST_PROJECT: backend/MobyPark-api.tests/MobyPark-api.tests.csproj
+  SOLUTION: MobyPark_Project_2526.sln
+
+jobs:
+  build-and-test:
+    runs-on: [self-hosted, linux, x64, mobypark]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore "${{ env.SOLUTION }}"
+
+      - name: Build (Release)
+        run: dotnet build "${{ env.SOLUTION }}" --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test "${{ env.SOLUTION }}" --configuration Release --no-build --logger "trx;LogFileName=test_results.trx"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: '**/test_results.trx'
+
+  deploy:
+    needs: build-and-test
+    runs-on: [self-hosted, linux, x64, mobypark]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deployment
+        run: |
+          docker compose down -v || true
+          docker compose up -d --build
+

@@ -32,7 +32,7 @@ namespace MobyPark_api.tests.IntegrationTests
 
             return new AuthService(_fixture.CreateContext(), new PasswordHasher<User>(), configuration);
         }
-
+        
         [Fact]
         public async Task RegisterUserCreatesUser()
         {
