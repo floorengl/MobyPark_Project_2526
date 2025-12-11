@@ -28,7 +28,7 @@ public sealed class PaymentController : ControllerBase
     // PUt /UpdatePayment
     [HttpPut("UpdatePayment")]
     [Authorize]
-    public async Task<IActionResult> UpdatePayment(int id, UpdatePaymentDto dto)
+    public async Task<IActionResult> UpdatePayment(Guid id, UpdatePaymentDto dto)
     {
         var payment = await _payment.UpdatePaymentAsync(id, dto);
         if (payment == null) return NotFound();
@@ -67,8 +67,8 @@ public sealed class PaymentController : ControllerBase
     }
 
     // GET /payments/{id}
-    [HttpGet("{id:long}")]
-    public async Task<IActionResult> GetPaymentById(long id)
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetPaymentById(Guid id)
     {
         var payment = await _payment.GetPaymentByIdAsync(id);
         if (payment == null)

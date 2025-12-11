@@ -161,12 +161,15 @@ namespace MobyPark_api.Migrations
 
             modelBuilder.Entity("Payment", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("id");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("uuid_generate_v4()");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric")
+                        .HasColumnName("amount");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp")
@@ -181,12 +184,14 @@ namespace MobyPark_api.Migrations
                         .HasColumnType("int")
                         .HasColumnName("status");
 
-                    b.Property<string>("TData")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("tdata");
+                    b.Property<Guid>("TransactionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("transaction_id");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("TransactionId")
+                        .IsUnique();
 
                     b.ToTable("payments", (string)null);
                 });
@@ -226,6 +231,42 @@ namespace MobyPark_api.Migrations
                     b.HasIndex("LicensePlateId");
 
                     b.ToTable("sessions", (string)null);
+                });
+
+            modelBuilder.Entity("TransactionData", b =>
+                {
+                    b.Property<Guid>("TransactionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("transaction_id")
+                        .HasDefaultValueSql("uuid_generate_v4()");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric")
+                        .HasColumnName("amount");
+
+                    b.Property<string>("Bank")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("bank");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("timestamp")
+                        .HasColumnName("date");
+
+                    b.Property<string>("Issuer")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("issuer");
+
+                    b.Property<string>("Method")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("method");
+
+                    b.HasKey("TransactionId");
+
+                    b.ToTable("transaction_data", (string)null);
                 });
 
             modelBuilder.Entity("User", b =>
@@ -310,6 +351,17 @@ namespace MobyPark_api.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Payment", b =>
+                {
+                    b.HasOne("TransactionData", "TransactionData")
+                        .WithOne()
+                        .HasForeignKey("Payment", "TransactionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TransactionData");
                 });
 
             modelBuilder.Entity("Session", b =>

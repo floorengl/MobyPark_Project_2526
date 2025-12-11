@@ -17,10 +17,26 @@ Content-Type: application/json
 ###
 GET {{api_HostAddress}}/payments
 
+###
+POST {{api_HostAddress}}/api/ParkingLot
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoibmV3YWRtaW4xMjMiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJBZG1pbiIsImV4cCI6MTc2NTQ4NzUzNSwiaXNzIjoibW9ieXBhcmsiLCJhdWQiOiJtb2J5cGFyay1jbGllbnQifQ.pPadZsbqig5cos_hmApSluceimZa6SBM91qMuJl0Ph0
+Content-Type: application/json
+
+{
+  "name": "Main Lot",
+  "location": "Center",
+  "address": "Some Street 123",
+  "capacity": 100,
+  "tariff": 2.5,
+  "dayTariff": 10.0,
+  "coordinates": "52.3702,4.8952"
+}
+
+
 
 ### POST 
 POST {{api_HostAddress}}/licenseplate
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoibmV3YWRtaW4xMjMiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJVc2VyIiwiZXhwIjoxNzY0ODQ5NjY2LCJpc3MiOiJtb2J5cGFyayIsImF1ZCI6Im1vYnlwYXJrLWNsaWVudCJ9.BcmaWlwLabCEaadvOn2-uV1VsZ1aBgVhw3JC-bClAKg
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoibmV3YWRtaW4xMjMiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJVc2VyIiwiZXhwIjoxNzY1NDg1Njc4LCJpc3MiOiJtb2J5cGFyayIsImF1ZCI6Im1vYnlwYXJrLWNsaWVudCJ9.c5v_J-i4ZklFLZ54QF0CNR2M7rChHNgn0GqmWfAHhMY
 Content-Type: application/json
 
 {

@@ -8,11 +8,34 @@ public sealed class PaymentConfig : IEntityTypeConfiguration<Payment>
         e.ToTable("payments");
         e.HasKey(x => x.Id);
 
-        e.Property(x => x.Id)           .HasColumnName("id")            .HasColumnType("bigint");
-        e.Property(x => x.CreatedAt)    .HasColumnName("createdat")     .HasColumnType("timestamp");
-        e.Property(x => x.Status)       .HasColumnName("status")        .HasColumnType("int");
-        e.Property(x => x.Hash)         .HasColumnName("hash")          .HasColumnType("text");
-        e.Property(x => x.TData)        .HasColumnName("tdata")         .HasColumnType("text");
+        e.Property(x => x.Id)
+            .HasColumnName("id")
+            .HasColumnType("uuid")
+            .HasDefaultValueSql("uuid_generate_v4()");
+
+        e.Property(x => x.Amount)
+            .HasColumnName("amount")
+            .HasColumnType("numeric");
+
+        e.Property(x => x.CreatedAt)
+            .HasColumnName("createdat")
+            .HasColumnType("timestamp");
+
+        e.Property(x => x.Status)
+            .HasColumnName("status")
+            .HasColumnType("int");
+
+        e.Property(x => x.Hash)
+            .HasColumnName("hash")
+            .HasColumnType("text");
+
+        e.Property(x => x.TransactionId)
+            .HasColumnName("transaction_id")
+            .HasColumnType("uuid");
+
+        e.HasOne(x => x.TransactionData)
+            .WithOne()
+            .HasForeignKey<Payment>(x => x.TransactionId);
 
     }
 }

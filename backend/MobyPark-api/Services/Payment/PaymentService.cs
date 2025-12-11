@@ -14,14 +14,27 @@ public sealed class PaymentService : IPaymentService
     //Create a payment
     public async Task AddPaymentAsync(AddPaymentDto dto)
     {
+        // Create TransactionData entity from dto
+        var transaction = new TransactionData
+        {
+            Amount = dto.Transaction.Amount,
+            Date = dto.Transaction.Date,
+            Method = dto.Transaction.Method,
+            Issuer = dto.Transaction.Issuer,
+            Bank = dto.Transaction.Bank
+        };
+
         var payment = new Payment
         {
-            Id = dto.Id,
+            Amount = dto.Amount,
             CreatedAt = dto.CreatedAt,
             Status = dto.Status,
-            Hash = dto.Hash,
-            TData = dto.TData
+            Hash = string.IsNullOrWhiteSpace(dto.Hash)
+                ? Guid.NewGuid().ToString("N")
+                : dto.Hash,
+            TransactionData = transaction
         };
+
         _db.Payments.Add(payment);
         await _db.SaveChangesAsync();
     }
@@ -30,6 +43,7 @@ public sealed class PaymentService : IPaymentService
     public async Task<List<Payment>> GetPaymentsBetweenAsync(DateTime start, DateTime end)
     {
         return await _db.Payments
+            .Include(p => p.TransactionData)
             .Where(p => p.CreatedAt >= start && p.CreatedAt <= end)
             .ToListAsync();
     }
@@ -37,39 +51,58 @@ public sealed class PaymentService : IPaymentService
     //POST refund
     public async Task AddRefundAsync(RefundPaymentDto dto)
     {
-        var tData = JsonSerializer.Deserialize<Dictionary<string, object>>(dto.TData);
-        var amount = Convert.ToDecimal(tData["amount"]);
-        amount = -Math.Abs(amount);
+        var original = await _db.Payments
+            .Include(p => p.TransactionData)
+            .FirstOrDefaultAsync(p => p.Id == dto.OriginalPaymentId);
 
-        var payment = new Payment
+        if (original == null)
         {
+            throw new InvalidOperationException("Original payment not found.");
+        }
+
+        var refundTransaction = new TransactionData
+        {
+            Amount = -Math.Abs(original.TransactionData.Amount),
+            Date = DateTime.UtcNow,
+            Method = original.TransactionData.Method,
+            Issuer = original.TransactionData.Issuer,
+            Bank = original.TransactionData.Bank
+        };
+
+        var refundPayment = new Payment
+        {
+            Amount = -Math.Abs(original.Amount),
             CreatedAt = DateTime.UtcNow,
             Status = dto.Status,
             Hash = Guid.NewGuid().ToString("N"),
-            TData = dto.TData
+            TransactionData = refundTransaction
         };
 
-        _db.Payments.Add(payment);
+        _db.Payments.Add(refundPayment);
         await _db.SaveChangesAsync();
     }
 
     //Get payment by ID
-    public async Task<Payment?> GetPaymentByIdAsync(long id)
+    public async Task<Payment?> GetPaymentByIdAsync(Guid id)
     {
-        return await _db.Payments.FirstOrDefaultAsync(p => p.Id == id);
+        return await _db.Payments.Include(p => p.TransactionData).FirstOrDefaultAsync(p => p.Id == id);
     }
 
-    //Update payent by ID
-    public async Task<Payment?> UpdatePaymentAsync(long id, UpdatePaymentDto dto)
+    //Update payment by ID
+    public async Task<Payment?> UpdatePaymentAsync(Guid id, UpdatePaymentDto dto)
     {
-        var payment = await _db.Payments.FirstOrDefaultAsync(p => p.Id == id);
+        var payment = await _db.Payments
+            .Include(p => p.TransactionData)
+            .FirstOrDefaultAsync(p => p.Id == id);
         if (payment == null) return null;
 
-        var tData = JsonSerializer.Deserialize<Dictionary<string, object>>(dto.TData);
-        var amount = Convert.ToDecimal(tData["amount"]);
-
-        payment.TData = dto.TData;
         payment.Status = dto.Status;
+
+        payment.TransactionData.Amount = dto.Transaction.Amount;
+        payment.TransactionData.Date = dto.Transaction.Date;
+        payment.TransactionData.Method = dto.Transaction.Method;
+        payment.TransactionData.Issuer = dto.Transaction.Issuer;
+        payment.TransactionData.Bank = dto.Transaction.Bank;
 
         await _db.SaveChangesAsync();
         return payment;
@@ -79,6 +112,7 @@ public sealed class PaymentService : IPaymentService
     public async Task<List<Payment>> GetPaymentsAsync()
     {
         return await _db.Payments
+            .Include(p => p.TransactionData)
             .OrderByDescending(p => p.CreatedAt)
             .ToListAsync();
     }

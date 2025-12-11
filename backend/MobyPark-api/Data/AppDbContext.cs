@@ -19,6 +19,7 @@ public class AppDbContext : DbContext
     public DbSet<Reservation> Reservations => Set<Reservation>();
 
     public DbSet<Payment> Payments => Set<Payment>();
+    public DbSet<TransactionData> Transactions => Set<TransactionData>();
 
     // Finds and applies all configurations.
     protected override void OnModelCreating(ModelBuilder b)
