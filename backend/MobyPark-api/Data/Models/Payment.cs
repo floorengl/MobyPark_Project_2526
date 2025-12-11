@@ -7,10 +7,9 @@ public class Payment
     public decimal Amount {get; set;}
     public DateTime CreatedAt { get; set; }
     public PaymentStatus Status { get; set; }
-    public string Hash { get; set; } = "";
+    public string Hash { get; set; } = "PlaceholderHash";
     public Guid TransactionId {get; set;}
 
     [ForeignKey(nameof(TransactionId))]
-    public TransactionData Transaction{get; set;} = null!;
-    
+    public TransactionData TransactionData{get; set;} = null!;
 }
