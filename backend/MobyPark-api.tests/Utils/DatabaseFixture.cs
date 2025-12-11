@@ -12,7 +12,6 @@ namespace MobyPark_api.tests
     public class DatabaseFixture : IAsyncLifetime
     {
         private readonly PostgreSqlContainer _container = new PostgreSqlBuilder().Build();
-
         public DbContextOptions<AppDbContext> DbOptions { get; private set; } = default!;
         private Respawner _respawn = null!;
 
@@ -23,6 +22,7 @@ namespace MobyPark_api.tests
         {
             // setup database container
             // note that we are using testcontainers so we create a new temporary docker container (you can see them coming by in docker if you open it during tests :) )
+            Environment.SetEnvironmentVariable("IsXUnitTesting", "True");
             await _container.StartAsync();
 
             var options = new DbContextOptionsBuilder<AppDbContext>()
@@ -32,7 +32,7 @@ namespace MobyPark_api.tests
             DbOptions = options;
 
             using var context = new AppDbContext(options);
-            await context.Database.MigrateAsync();
+           await context.Database.EnsureCreatedAsync();
 
             // setup respawn. respawn is used to quickly reset the database between tests
             await using var conn = new NpgsqlConnection(_container.GetConnectionString());

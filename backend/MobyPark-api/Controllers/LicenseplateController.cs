@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using MobyPark_api.Dtos;
 
 [ApiController]
 [Route("licenseplate")]
@@ -9,7 +11,7 @@ public sealed class LicenseplateController : ControllerBase
 
     // POST /licenseplate
     [HttpPost]
-    public async Task<IActionResult> Licenseplates([FromBody] LicenseplateDto dto, CancellationToken cto)
+    public async Task<IActionResult> Licenseplates([FromBody] CheckInDto dto, CancellationToken cto)
     {
         var id = await _license.LicenseplatesAsync(dto, cto);
         return StatusCode(201);
@@ -17,6 +19,7 @@ public sealed class LicenseplateController : ControllerBase
 
     // DELETE /licenseplate
     [HttpDelete("{plate}")]
+    [Authorize(Roles = "ADMIN")]
     public async Task<IActionResult> Delete(string plate, CancellationToken ct)
     {
         await _license.DeleteAsync(plate, ct);
@@ -25,6 +28,7 @@ public sealed class LicenseplateController : ControllerBase
 
     // GET ALL /licenseplate
     [HttpGet("")]
+    [Authorize(Roles = "ADMIN")]
     public async Task<ActionResult<IEnumerable<LicenseplateDto>>> GetAll(CancellationToken ct)
     {
         var list = await _license.GetAllAsync(ct);
@@ -33,6 +37,7 @@ public sealed class LicenseplateController : ControllerBase
 
     // GET ONE /licenseplate/{plate}
     [HttpGet("{plate}")]
+    [Authorize(Roles = "ADMIN")]
     public async Task<ActionResult<LicenseplateDto>> GetOne(string plate, CancellationToken ct)
     {
         var item = await _license.GetByPlateAsync(plate, ct);

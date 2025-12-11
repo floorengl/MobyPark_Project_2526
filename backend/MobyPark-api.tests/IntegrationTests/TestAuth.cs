@@ -19,7 +19,7 @@ namespace MobyPark_api.tests.IntegrationTests
             // I (Rein) who wrote this line vvv am not sure how AuthService should be instaniated. The configbuilder I am least certain of.
             return new AuthService(_fixture.CreateContext(), new PasswordHasher<User>(), new ConfigurationBuilder().Build());
         }
-
+        
         [Fact]
         public async Task RegisterUserCreatesUser()
         {
@@ -35,7 +35,6 @@ namespace MobyPark_api.tests.IntegrationTests
             Assert.Equal(id, actual.Id);
             Assert.Equal(toMake.Username, actual.Username);
         }
-
     }
 }
 
