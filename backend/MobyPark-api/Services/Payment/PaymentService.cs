@@ -1,22 +1,16 @@
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json;
-using MobyPark_api.Enums;
 
 public sealed class PaymentService : IPaymentService
 {
-    private readonly AppDbContext _db;
+    private readonly IPaymentRepository _repo;
 
-    public PaymentService(AppDbContext db)
-    {
-        _db = db;
-    }
+    public PaymentService(IPaymentRepository repo) => _repo = repo;
 
-    //Create a payment
-    public async Task AddPaymentAsync(AddPaymentDto dto)
+    public async Task AddPaymentAsync(AddPaymentDto dto, CancellationToken ct = default)
     {
-        // Create TransactionData entity from dto
-        var transaction = new TransactionData
+        var tx = new TransactionData
         {
+            TransactionId = Guid.NewGuid(),
             Amount = dto.Transaction.Amount,
             Date = dto.Transaction.Date,
             Method = dto.Transaction.Method,
@@ -26,94 +20,74 @@ public sealed class PaymentService : IPaymentService
 
         var payment = new Payment
         {
+            Id = Guid.NewGuid(),
             Amount = dto.Amount,
             CreatedAt = dto.CreatedAt,
             Status = dto.Status,
-            Hash = string.IsNullOrWhiteSpace(dto.Hash)
-                ? Guid.NewGuid().ToString("N")
-                : dto.Hash,
-            TransactionData = transaction
+            Hash = string.IsNullOrWhiteSpace(dto.Hash) ? Guid.NewGuid().ToString("N") : dto.Hash!,
+            TransactionId = tx.TransactionId,
+            TransactionData = tx
         };
 
-        _db.Payments.Add(payment);
-        await _db.SaveChangesAsync();
+        await _repo.AddAsync(payment, ct);
+        await _repo.SaveChangesAsync(ct);
     }
 
-    //Get payment between 2 dates
-    public async Task<List<Payment>> GetPaymentsBetweenAsync(DateTime start, DateTime end)
-    {
-        return await _db.Payments
-            .Include(p => p.TransactionData)
-            .Where(p => p.CreatedAt >= start && p.CreatedAt <= end)
-            .ToListAsync();
-    }
+    public Task<List<Payment>> GetPaymentsBetweenAsync(DateTime start, DateTime end, CancellationToken ct = default)
+        => _repo.GetBetweenAsync(start, end, ct);
 
-    //POST refund
-    public async Task AddRefundAsync(RefundPaymentDto dto)
+    public async Task AddRefundAsync(RefundPaymentDto dto, CancellationToken ct = default)
     {
-        var original = await _db.Payments
-            .Include(p => p.TransactionData)
-            .FirstOrDefaultAsync(p => p.Id == dto.OriginalPaymentId);
-
+        var original = await _repo.GetByIdWithTransactionAsync(dto.OriginalPaymentId, ct);
         if (original == null)
-        {
             throw new InvalidOperationException("Original payment not found.");
-        }
 
-        var refundTransaction = new TransactionData
+        var now = DateTime.UtcNow;
+
+        var refundTx = new TransactionData
         {
+            TransactionId = Guid.NewGuid(),
             Amount = -Math.Abs(original.TransactionData.Amount),
-            Date = DateTime.UtcNow,
+            Date = now,
             Method = original.TransactionData.Method,
             Issuer = original.TransactionData.Issuer,
             Bank = original.TransactionData.Bank
         };
 
-        var refundPayment = new Payment
+        var refund = new Payment
         {
+            Id = Guid.NewGuid(),
             Amount = -Math.Abs(original.Amount),
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = now,
             Status = dto.Status,
             Hash = Guid.NewGuid().ToString("N"),
-            TransactionData = refundTransaction
+            TransactionId = refundTx.TransactionId,
+            TransactionData = refundTx
         };
 
-        _db.Payments.Add(refundPayment);
-        await _db.SaveChangesAsync();
+        await _repo.AddAsync(refund, ct);
+        await _repo.SaveChangesAsync(ct);
     }
 
-    //Get payment by ID
-    public async Task<Payment?> GetPaymentByIdAsync(Guid id)
-    {
-        return await _db.Payments.Include(p => p.TransactionData).FirstOrDefaultAsync(p => p.Id == id);
-    }
+    public Task<Payment?> GetPaymentByIdAsync(Guid id, CancellationToken ct = default)
+        => _repo.GetByIdWithTransactionAsync(id, ct);
 
-    //Update payment by ID
-    public async Task<Payment?> UpdatePaymentAsync(Guid id, UpdatePaymentDto dto)
+    public async Task<Payment?> UpdatePaymentAsync(Guid id, UpdatePaymentDto dto, CancellationToken ct = default)
     {
-        var payment = await _db.Payments
-            .Include(p => p.TransactionData)
-            .FirstOrDefaultAsync(p => p.Id == id);
+        var payment = await _repo.GetByIdWithTransactionAsync(id, ct);
         if (payment == null) return null;
 
         payment.Status = dto.Status;
-
         payment.TransactionData.Amount = dto.Transaction.Amount;
         payment.TransactionData.Date = dto.Transaction.Date;
         payment.TransactionData.Method = dto.Transaction.Method;
         payment.TransactionData.Issuer = dto.Transaction.Issuer;
         payment.TransactionData.Bank = dto.Transaction.Bank;
 
-        await _db.SaveChangesAsync();
+        await _repo.SaveChangesAsync(ct);
         return payment;
     }
 
-    // Get all payments
-    public async Task<List<Payment>> GetPaymentsAsync()
-    {
-        return await _db.Payments
-            .Include(p => p.TransactionData)
-            .OrderByDescending(p => p.CreatedAt)
-            .ToListAsync();
-    }
+    public Task<List<Payment>> GetPaymentsAsync(CancellationToken ct = default)
+        => _repo.GetAllWithTransactionAsync(ct);
 }

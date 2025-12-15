@@ -21,19 +21,41 @@ public class AppDbContext : DbContext
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<TransactionData> Transactions => Set<TransactionData>();
 
-    // Finds and applies all configurations.
     protected override void OnModelCreating(ModelBuilder b)
     {
-        b.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
-        b.HasPostgresExtension("uuid-ossp");
         base.OnModelCreating(b);
-        b.Entity<Payment>().ToTable("payments");
+        b.HasPostgresExtension("uuid-ossp");
+        // For config classes.
+        b.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+        // User.
         b.Entity<User>()
-        .HasMany(u => u.Vehicles)
-        .WithOne(v => v.User)
-        .HasForeignKey(v => v.UserId);
+            .HasMany(u => u.Vehicles)
+            .WithOne(v => v.User)
+            .HasForeignKey(v => v.UserId);
+        // Reservation.
         b.Entity<Reservation>()
-        .Property(r => r.Id)
-        .HasDefaultValueSql("uuid_generate_v4()");
+            .Property(r => r.Id)
+            .HasDefaultValueSql("uuid_generate_v4()");
+        // Payment.
+        b.Entity<Payment>(e =>
+        {
+            e.ToTable("payments");
+            e.HasKey(p => p.Id);
+            e.Property(p => p.Id).HasDefaultValueSql("uuid_generate_v4()");
+            e.Property(p => p.Hash)
+                .IsRequired()
+                .HasMaxLength(64);
+            e.HasOne(p => p.TransactionData)
+                .WithOne()
+                .HasForeignKey<Payment>(p => p.TransactionId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+        // Transaction Data
+        b.Entity<TransactionData>(e =>
+        {
+            e.ToTable("transactions");
+            e.HasKey(t => t.TransactionId);
+            e.Property(t => t.TransactionId).HasDefaultValueSql("uuid_generate_v4()");
+        });
     }
 }
