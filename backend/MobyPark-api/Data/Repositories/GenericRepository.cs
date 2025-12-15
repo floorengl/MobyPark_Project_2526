@@ -25,7 +25,7 @@ public abstract class GenericRepository<TEntity, TKey> : IGenericRepository<TEnt
 
     public virtual void Remove(TEntity entity) => _set.Remove(entity);
 
-    public virtual IQueryable<TEntity> Query() => _set.AsQueryable();
+    //public virtual IQueryable<TEntity> Query() => _set.AsQueryable();
 
     public virtual Task<int> SaveChangesAsync(CancellationToken ct = default)
         => _db.SaveChangesAsync(ct);

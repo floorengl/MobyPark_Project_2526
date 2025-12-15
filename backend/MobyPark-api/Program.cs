@@ -19,7 +19,7 @@ public class Program
         builder.Services.AddDbContext<AppDbContext>(opt =>
             opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-        // Password hasher and auth service.
+        // Services
         builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
         builder.Services.AddScoped<IAuthService, AuthService>();
         builder.Services.AddScoped<ILicenseplateService, LicenseplateService>();
@@ -27,6 +27,8 @@ public class Program
         builder.Services.AddScoped<IReservationService, ReservationService>();
         builder.Services.AddScoped<IParkingLotService, ParkingLotService>();
         builder.Services.AddScoped<IPaymentService, PaymentService>();
+        // Repositories
+        builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
         
 
 

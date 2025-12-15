@@ -40,22 +40,67 @@ public class AppDbContext : DbContext
         b.Entity<Payment>(e =>
         {
             e.ToTable("payments");
-            e.HasKey(p => p.Id);
-            e.Property(p => p.Id).HasDefaultValueSql("uuid_generate_v4()");
-            e.Property(p => p.Hash)
-                .IsRequired()
-                .HasMaxLength(64);
-            e.HasOne(p => p.TransactionData)
+            e.HasKey(x => x.Id);
+
+            e.Property(x => x.Id)
+                .HasColumnName("id")
+                .HasColumnType("uuid")
+                .HasDefaultValueSql("uuid_generate_v4()");
+
+            e.Property(x => x.Amount)
+                .HasColumnName("amount")
+                .HasColumnType("numeric");
+
+            e.Property(x => x.CreatedAt)
+                .HasColumnName("createdat")
+                .HasColumnType("timestamptz");
+
+            e.Property(x => x.Status)
+                .HasColumnName("status")
+                .HasColumnType("int"); 
+
+            e.Property(x => x.Hash)
+                .HasColumnName("hash")
+                .HasColumnType("text");
+
+            e.Property(x => x.TransactionId)
+                .HasColumnName("transaction_id")
+                .HasColumnType("uuid");
+
+            e.HasOne(x => x.TransactionData)
                 .WithOne()
-                .HasForeignKey<Payment>(p => p.TransactionId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .HasForeignKey<Payment>(x => x.TransactionId);
         });
-        // Transaction Data
+        // Transaction data.
         b.Entity<TransactionData>(e =>
         {
-            e.ToTable("transactions");
-            e.HasKey(t => t.TransactionId);
-            e.Property(t => t.TransactionId).HasDefaultValueSql("uuid_generate_v4()");
+            e.ToTable("transaction_data");
+            e.HasKey(x => x.TransactionId);
+
+            e.Property(x => x.TransactionId)
+                .HasColumnName("transaction_id")
+                .HasColumnType("uuid")
+                .HasDefaultValueSql("uuid_generate_v4()");
+
+            e.Property(x => x.Amount)
+                .HasColumnName("amount")
+                .HasColumnType("numeric");
+
+            e.Property(x => x.Date)
+                .HasColumnName("date")
+                .HasColumnType("timestamptz");
+
+            e.Property(x => x.Method)
+                .HasColumnName("method")
+                .HasColumnType("text");
+
+            e.Property(x => x.Issuer)
+                .HasColumnName("issuer")
+                .HasColumnType("text");
+
+            e.Property(x => x.Bank)
+                .HasColumnName("bank")
+                .HasColumnType("text");
         });
     }
 }

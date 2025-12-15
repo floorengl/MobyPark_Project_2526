@@ -10,6 +10,6 @@ public interface IGenericRepository<TEntity, TKey>
     void Update(TEntity entity);
     void Remove(TEntity entity);
 
-    IQueryable<TEntity> Query(); // for advanced queries
+    //IQueryable<TEntity> Query(); // for advanced queries
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 }
