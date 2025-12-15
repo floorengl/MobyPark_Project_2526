@@ -14,5 +14,6 @@ public interface IReservationService
     public Task<ReadReservationDto?> GetActiveReservation(string licensePlate, DateTime time);
     public Task<bool> WillParkingLotOverflow(DateTime start, DateTime end, long parkingLotId, int baseLoad = 0);
     public Task ConsumeReservation(string guid);
+    public Task PayForReservation(string guid);
 
 }

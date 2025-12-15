@@ -85,7 +85,7 @@ public class ReservationService : IReservationService
 
     public async Task<(bool, string)> IsReservationAllowed(WriteReservationDto reservation)
     {
-        if (reservation.StartTime.AddMinutes(30) < DateTime.UtcNow)
+        if (reservation.StartTime.AddMinutes(30) < DateTime.Now)
             return (false, "Reservation cannot start in the past or within 30 minutes from now");
         if (reservation.StartTime >= reservation.EndTime)
             return (false, "EndTime is smaller than StartTime");
