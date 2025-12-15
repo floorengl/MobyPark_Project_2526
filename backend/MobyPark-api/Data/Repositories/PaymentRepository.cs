@@ -4,7 +4,7 @@ public sealed class PaymentRepository : GenericRepository<Payment, Guid>, IPayme
 {
     public PaymentRepository(AppDbContext db) : base(db) { }
 
-    public Task<Payment?> GetByIdWithTransactionAsync(Guid id, CancellationToken ct = default)
+    public Task<Payment?> GetByIdPaymentAsync(Guid id, CancellationToken ct = default)
         => _db.Payments
             .Include(p => p.TransactionData)
             .FirstOrDefaultAsync(p => p.Id == id, ct);
@@ -17,7 +17,7 @@ public sealed class PaymentRepository : GenericRepository<Payment, Guid>, IPayme
             .AsNoTracking()
             .ToListAsync(ct);
 
-    public Task<List<Payment>> GetAllWithTransactionAsync(CancellationToken ct = default)
+    public Task<List<Payment>> GetAllPaymentsAsync(CancellationToken ct = default)
         => _db.Payments
             .Include(p => p.TransactionData)
             .OrderByDescending(p => p.CreatedAt)

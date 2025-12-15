@@ -38,7 +38,7 @@ public sealed class PaymentService : IPaymentService
 
     public async Task AddRefundAsync(RefundPaymentDto dto, CancellationToken ct = default)
     {
-        var original = await _repo.GetByIdWithTransactionAsync(dto.OriginalPaymentId, ct);
+        var original = await _repo.GetByIdPaymentAsync(dto.OriginalPaymentId, ct);
         if (original == null)
             throw new InvalidOperationException("Original payment not found.");
 
@@ -70,11 +70,11 @@ public sealed class PaymentService : IPaymentService
     }
 
     public Task<Payment?> GetPaymentByIdAsync(Guid id, CancellationToken ct = default)
-        => _repo.GetByIdWithTransactionAsync(id, ct);
+        => _repo.GetByIdPaymentAsync(id, ct);
 
     public async Task<Payment?> UpdatePaymentAsync(Guid id, UpdatePaymentDto dto, CancellationToken ct = default)
     {
-        var payment = await _repo.GetByIdWithTransactionAsync(id, ct);
+        var payment = await _repo.GetByIdPaymentAsync(id, ct);
         if (payment == null) return null;
 
         payment.Status = dto.Status;
@@ -89,5 +89,5 @@ public sealed class PaymentService : IPaymentService
     }
 
     public Task<List<Payment>> GetPaymentsAsync(CancellationToken ct = default)
-        => _repo.GetAllWithTransactionAsync(ct);
+        => _repo.GetAllPaymentsAsync(ct);
 }
