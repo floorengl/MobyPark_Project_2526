@@ -29,7 +29,9 @@ public class Program
         builder.Services.AddScoped<IPaymentService, PaymentService>();
         // Repositories
         builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
-        
+        builder.Services.AddScoped<ILicenseplateRepository, LicenseplateRepository>();
+        builder.Services.AddScoped<ISessionRepository, SessionRepository>();
+        builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 
         // JWT authentication.
