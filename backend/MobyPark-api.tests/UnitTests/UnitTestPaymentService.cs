@@ -128,7 +128,6 @@ public class PaymentServiceTests
         var repo = new Mock<IPaymentRepository>();
         repo.Setup(r => r.GetByIdPaymentAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Payment?)null);
-
         var sut = new PaymentService(repo.Object);
         // Act.
         var result = await sut.UpdatePaymentAsync(Guid.NewGuid(), PaymentUpdateDto());
