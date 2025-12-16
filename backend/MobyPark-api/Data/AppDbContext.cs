@@ -189,5 +189,96 @@ public class AppDbContext : DbContext
             e.HasIndex(x => x.Email)
                 .HasDatabaseName("ix_users_email");
         });
+        // Parkinglots.
+        b.Entity<ParkingLot>(e =>
+        {
+            e.ToTable("ParkingLots"); // <-- change if your table name is different
+            e.HasKey(x => x.Id);
+
+            e.Property(x => x.Id)
+                .HasColumnName("id")
+                .HasColumnType("bigint");
+
+            e.Property(x => x.Name)
+                .HasColumnName("name")
+                .HasColumnType("text")
+                .IsRequired();
+
+            e.Property(x => x.Location)
+                .HasColumnName("location")
+                .HasColumnType("text")
+                .IsRequired();
+
+            e.Property(x => x.Address)
+                .HasColumnName("address")
+                .HasColumnType("text");
+
+            e.Property(x => x.Capacity)
+                .HasColumnName("capacity")
+                .HasColumnType("bigint");
+
+            e.Property(x => x.Tariff)
+                .HasColumnName("tariff")
+                .HasColumnType("real"); // float in C# -> real in PG (or double precision)
+
+            e.Property(x => x.DayTariff)
+                .HasColumnName("day_tariff")
+                .HasColumnType("real");
+
+            e.Property(x => x.CreatedAt)
+                .HasColumnName("created_at")
+                .HasColumnType("timestamptz");
+
+            e.Property(x => x.Coordinates)
+                .HasColumnName("coordinates")
+                .HasColumnType("text");
+        });
+        // Reservations.
+        b.Entity<Reservation>(e =>
+        {
+            e.ToTable("Reservations");
+            e.HasKey(x => x.Id);
+
+            e.Property(x => x.Id)
+                .HasColumnName("id")
+                .HasColumnType("uuid")
+                .HasDefaultValueSql("uuid_generate_v4()");
+
+            e.Property(x => x.ParkingLotId)
+                .HasColumnName("parking_lot_id")
+                .HasColumnType("bigint");
+
+            e.Property(x => x.LicensePlate)
+                .HasColumnName("license_plate")
+                .HasColumnType("text")
+                .IsRequired();
+
+            e.Property(x => x.StartTime)
+                .HasColumnName("start_time")
+                .HasColumnType("timestamptz");
+
+            e.Property(x => x.EndTime)
+                .HasColumnName("end_time")
+                .HasColumnType("timestamptz");
+
+            e.Property(x => x.CreatedAt)
+                .HasColumnName("created_at")
+                .HasColumnType("timestamptz");
+
+            e.Property(x => x.Cost)
+                .HasColumnName("cost")
+                .HasColumnType("real");
+
+            e.Property(x => x.Status)
+                .HasColumnName("status")
+                .HasColumnType("int");
+
+            e.HasOne(x => x.ParkingLot)
+                .WithMany()
+                .HasForeignKey(x => x.ParkingLotId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+
     }
 }

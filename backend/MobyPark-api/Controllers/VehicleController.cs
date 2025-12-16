@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens.Experimental;
 using MobyPark_api.Dtos.Vehicle;
-using MobyPark_api.Services.VehicleService;
 
 namespace MobyPark_api.Controllers
 {

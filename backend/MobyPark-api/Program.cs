@@ -26,12 +26,17 @@ public class Program
         builder.Services.AddScoped<ISessionService, SessionService>();
         builder.Services.AddScoped<IReservationService, ReservationService>();
         builder.Services.AddScoped<IParkingLotService, ParkingLotService>();
+        builder.Services.AddScoped<IVehicleService, VehicleService>();
         builder.Services.AddScoped<IPaymentService, PaymentService>();
         // Repositories
         builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
         builder.Services.AddScoped<ILicenseplateRepository, LicenseplateRepository>();
         builder.Services.AddScoped<ISessionRepository, SessionRepository>();
         builder.Services.AddScoped<IUserRepository, UserRepository>();
+        builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
+        builder.Services.AddScoped<IUserRepository, UserRepository>();
+        builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
+        builder.Services.AddScoped<IParkingLotRepository, ParkingLotRepository>();
 
 
         // JWT authentication.

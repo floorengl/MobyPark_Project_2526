@@ -1,6 +1,6 @@
 ﻿using MobyPark_api.Data.Models;
 using MobyPark_api.Dtos.Vehicle;
-using MobyPark_api.Services.VehicleService;
+using MobyPark_api.Services;
 using Xunit.Sdk;
 
 namespace MobyPark_api.tests.IntegrationTests
@@ -25,7 +25,8 @@ namespace MobyPark_api.tests.IntegrationTests
 
             // arrange
             var db = _fixture.CreateContext();
-            var sut = new VehicleService(db);
+            var repo = new VehicleRepository(db);
+            var sut = new VehicleService(repo);
 
             db.Add(new User() { Username="Testuser", Id = 1});
             db.SaveChanges();
@@ -45,7 +46,8 @@ namespace MobyPark_api.tests.IntegrationTests
             // arrange
             await _fixture.ResetDB();
             var db = _fixture.CreateContext();
-            var sut = new VehicleService(db);
+            var repo = new VehicleRepository(db);
+            var sut = new VehicleService(repo);
 
             db.Add(new User() { Id = 0 });
             db.SaveChanges();
@@ -62,7 +64,8 @@ namespace MobyPark_api.tests.IntegrationTests
             // arrange
             await _fixture.ResetDB();
             var db = _fixture.CreateContext();
-            var sut = new VehicleService(db);
+            var repo = new VehicleRepository(db);
+            var sut = new VehicleService(repo);
 
             db.Add(new User() { Id = 1 });
             db.SaveChanges();
@@ -82,7 +85,8 @@ namespace MobyPark_api.tests.IntegrationTests
             // arrange
             await _fixture.ResetDB();
             var db = _fixture.CreateContext();
-            var sut = new VehicleService(db);
+            var repo = new VehicleRepository(db);
+            var sut = new VehicleService(repo);
 
             var cars = await sut.GetUserVehiclesAsync(1);
 
@@ -96,7 +100,8 @@ namespace MobyPark_api.tests.IntegrationTests
             // arrange
             await _fixture.ResetDB();
             var db = _fixture.CreateContext();
-            var sut = new VehicleService(db);
+            var repo = new VehicleRepository(db);
+            var sut = new VehicleService(repo);
 
             db.Add(new User() { Id = 1 , Username="Arnout"});
             db.SaveChanges();
@@ -116,7 +121,8 @@ namespace MobyPark_api.tests.IntegrationTests
             // arrange
             await _fixture.ResetDB();
             var db = _fixture.CreateContext();
-            var sut = new VehicleService(db);
+            var repo = new VehicleRepository(db);
+            var sut = new VehicleService(repo);
 
             var user = db.Add(new User() { Id = 1, Username = "Arnout" }).Entity;
             db.SaveChanges();
@@ -135,7 +141,8 @@ namespace MobyPark_api.tests.IntegrationTests
             // arrange
             await _fixture.ResetDB();
             var db = _fixture.CreateContext();
-            var sut = new VehicleService(db);
+            var repo = new VehicleRepository(db);
+            var sut = new VehicleService(repo);
 
             db.Add(new User() { Id = 1, Username = "Arnout" });
             db.SaveChanges();
@@ -152,7 +159,8 @@ namespace MobyPark_api.tests.IntegrationTests
             // arrange
             await _fixture.ResetDB();
             var db = _fixture.CreateContext();
-            var sut = new VehicleService(db);
+            var repo = new VehicleRepository(db);
+            var sut = new VehicleService(repo);
             //act
             var car = await sut.GetByIdAsync(12, 4);
 
@@ -166,7 +174,8 @@ namespace MobyPark_api.tests.IntegrationTests
             // arrange
             await _fixture.ResetDB();
             var db = _fixture.CreateContext();
-            var sut = new VehicleService(db);
+            var repo = new VehicleRepository(db);
+            var sut = new VehicleService(repo);
             var vehicleDto = new VehicleDto() { Id = 1, LicensePlate = "toffepeer" };
 
             db.Add(new User() { Id = 1, Username = "Arnout" });
@@ -187,7 +196,8 @@ namespace MobyPark_api.tests.IntegrationTests
             // arrange
             await _fixture.ResetDB();
             var db = _fixture.CreateContext();
-            var sut = new VehicleService(db);
+            var repo = new VehicleRepository(db);
+            var sut = new VehicleService(repo);
             var vehicleDto = new VehicleDto() { Id = 1, LicensePlate = "toffepeer" };
 
             db.Add(new User() { Id = 1, Username = "Arnout" });
@@ -207,7 +217,8 @@ namespace MobyPark_api.tests.IntegrationTests
             // arrange
             await _fixture.ResetDB();
             var db = _fixture.CreateContext();
-            var sut = new VehicleService(db);
+            var repo = new VehicleRepository(db);
+            var sut = new VehicleService(repo);
             var vehicleDto = new VehicleDto() {LicensePlate = "boe" };
             var ElaborateVehicle = new VehicleDto()
             {
@@ -235,7 +246,8 @@ namespace MobyPark_api.tests.IntegrationTests
             // arrange
             await _fixture.ResetDB();
             var db = _fixture.CreateContext();
-            var sut = new VehicleService(db);
+            var repo = new VehicleRepository(db);
+            var sut = new VehicleService(repo);
             var vehicleDto = new VehicleDto() { Id = 1, LicensePlate = "toffepeer", Color = "teal", };
             var ElaborateVehicle = new VehicleDto()
             {
@@ -262,7 +274,8 @@ namespace MobyPark_api.tests.IntegrationTests
             //arrange
             await _fixture.ResetDB();
             var db = _fixture.CreateContext();
-            var sut = new VehicleService(db);
+            var repo = new VehicleRepository(db);
+            var sut = new VehicleService(repo);
             var user = db.Add(new User() { FullName = "Hendrick"}).Entity;
             db.SaveChanges();
             var car = db.Add(new Vehicle() { LicensePlate = "55-rvp-12", UserId=user.Id }).Entity;

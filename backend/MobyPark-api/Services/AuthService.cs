@@ -47,9 +47,9 @@ public sealed class AuthService : IAuthService
         };
     }
 
-    public async Task<AuthResponseDto> LoginAsync(LoginRequestDto loginRequest)
+    public async Task<AuthResponseDto> LoginAsync(LoginRequestDto loginRequest, CancellationToken ct = default)
     {
-        var user = await _users.GetByUsernameAsync(loginRequest.UserName, CancellationToken.None);
+        var user = await _users.GetByUsernameAsync(loginRequest.UserName, ct);
         if (user == null)
             throw new UnauthorizedAccessException("Invalid username or password.");
         if (!user.Active)

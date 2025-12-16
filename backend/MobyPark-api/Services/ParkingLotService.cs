@@ -5,16 +5,17 @@ using MobyPark_api.Services.ParkingLot;
 
 public class ParkingLotService : IParkingLotService
 {
-    private readonly AppDbContext _context;
+    private readonly IParkingLotRepository _repo;
 
-    public ParkingLotService(AppDbContext context)
-    {
-        _context = context;
-    }
+    public ParkingLotService(IParkingLotRepository repo) => _repo = repo;
 
     public async Task<IEnumerable<ParkingLotDto>> GetAllAsync()
     {
-        return await _context.ParkingLots
+        var list = await _repo.GetAllAsync();
+
+        // If you want ordering, do it here (or add a custom repo method later)
+        return list
+            .OrderBy(p => p.Id)
             .Select(p => new ParkingLotDto
             {
                 Id = p.Id,
@@ -26,12 +27,12 @@ public class ParkingLotService : IParkingLotService
                 DayTariff = p.DayTariff,
                 CreatedAt = p.CreatedAt,
                 Coordinates = p.Coordinates
-            }).ToListAsync();
+            });
     }
 
-    public async Task<ParkingLotDto> GetByIdAsync(long id)
+    public async Task<ParkingLotDto?> GetByIdAsync(long id)
     {
-        var p = await _context.ParkingLots.FindAsync(id);
+        var p = await _repo.GetByIdAsync(id);
         if (p == null) return null;
 
         return new ParkingLotDto
@@ -58,11 +59,12 @@ public class ParkingLotService : IParkingLotService
             Capacity = dto.Capacity,
             Tariff = dto.Tariff,
             DayTariff = dto.DayTariff,
-            Coordinates = dto.Coordinates
+            Coordinates = dto.Coordinates,
+            CreatedAt = DateTime.UtcNow
         };
 
-        _context.ParkingLots.Add(parkingLot);
-        await _context.SaveChangesAsync();
+        await _repo.AddAsync(parkingLot);
+        await _repo.SaveChangesAsync();
 
         return new ParkingLotDto
         {
@@ -78,9 +80,10 @@ public class ParkingLotService : IParkingLotService
         };
     }
 
-    public async Task<ParkingLotDto> UpdateAsync(long id, ParkingLotUpdateDto dto)
+    public async Task<ParkingLotDto?> UpdateAsync(long id, ParkingLotUpdateDto dto)
     {
-        var parkingLot = await _context.ParkingLots.FindAsync(id);
+        // FindAsync via generic GetByIdAsync
+        var parkingLot = await _repo.GetByIdAsync(id);
         if (parkingLot == null) return null;
 
         parkingLot.Name = dto.Name;
@@ -91,7 +94,7 @@ public class ParkingLotService : IParkingLotService
         parkingLot.DayTariff = dto.DayTariff;
         parkingLot.Coordinates = dto.Coordinates;
 
-        await _context.SaveChangesAsync();
+        await _repo.SaveChangesAsync();
 
         return new ParkingLotDto
         {
@@ -109,11 +112,11 @@ public class ParkingLotService : IParkingLotService
 
     public async Task<bool> DeleteAsync(long id)
     {
-        var parkingLot = await _context.ParkingLots.FindAsync(id);
+        var parkingLot = await _repo.GetByIdAsync(id);
         if (parkingLot == null) return false;
 
-        _context.ParkingLots.Remove(parkingLot);
-        await _context.SaveChangesAsync();
+        _repo.Remove(parkingLot);
+        await _repo.SaveChangesAsync();
         return true;
     }
 }

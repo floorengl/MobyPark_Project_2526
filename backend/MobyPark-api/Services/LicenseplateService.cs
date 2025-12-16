@@ -68,9 +68,17 @@ public sealed class LicenseplateService : ILicenseplateService
 
     // GET ALL Licenseplates
     public async Task<IReadOnlyList<LicenseplateDto>> GetAllAsync(CancellationToken ct)
-        => await _plates.GetAllDtosAsync(ct);
+    {
+        var entities = await _plates.GetAllOrderedAsync(ct);
+        return entities
+            .Select(x => new LicenseplateDto { LicensePlateName = x.LicensePlateName })
+            .ToList();
+    }
 
-    // GET ONE Licenseplates
-    public Task<LicenseplateDto?> GetByPlateAsync(string plateText, CancellationToken ct)
-        => _plates.GetDtoByPlateTextAsync(plateText, ct);
+    // GET ONE Licenseplate
+    public async Task<LicenseplateDto?> GetByPlateAsync(string plateText, CancellationToken ct)
+    {
+        var entity = await _plates.GetByPlateTextAsync(plateText, ct);
+        return entity == null ? null : new LicenseplateDto { LicensePlateName = entity.LicensePlateName };
+    }
 }
