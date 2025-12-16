@@ -54,7 +54,7 @@ public sealed class ReservationService : IReservationService
         var lot = await _parkingLots.GetByIdAsync(dto.ParkingLotId);
         if (lot == null) return null;
 
-        var reservation = await _reservations.GetByIdAsync(id); // tracked
+        var reservation = await _reservations.GetByIdAsync(id);
         if (reservation == null) return null;
 
         reservation.LicensePlate = dto.LicensePlate;
@@ -145,8 +145,6 @@ public sealed class ReservationService : IReservationService
         await _reservations.SaveChangesAsync();
     }
 
-    // --- Your static helpers stay identical ---
-
     public static bool DoTimesOverlap(DateTime start1, DateTime end1, DateTime start2, DateTime end2)
         => start1 < end2 && start2 < end1;
 
@@ -176,10 +174,8 @@ public sealed class ReservationService : IReservationService
                 }
                 else j++;
             }
-
             if (parked > max) max = parked;
         }
-
         return max;
     }
 

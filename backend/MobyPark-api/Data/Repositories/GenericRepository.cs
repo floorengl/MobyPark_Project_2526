@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-public abstract class GenericRepository<TEntity, TKey> : IGenericRepository<TEntity, TKey>
-    where TEntity : class
+public abstract class GenericRepository<TEntity, TKey> : IGenericRepository<TEntity, TKey> where TEntity : class
 {
     protected readonly AppDbContext _db;
     protected readonly DbSet<TEntity> _set;

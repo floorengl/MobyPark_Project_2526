@@ -16,7 +16,7 @@ public sealed class VehicleService : IVehicleService
         Color = v.Color,
         Year = v.Year,
         UserId = v.UserId,
-        CreatedAt = v.CreatedAt
+        CreatedAt = v.CreatedAt,
     };
 
     public async Task<IEnumerable<VehicleDto>> GetAllVehicles(CancellationToken ct = default)
@@ -59,9 +59,8 @@ public sealed class VehicleService : IVehicleService
     public async Task<VehicleDto?> UpdateAsync(long id, VehicleDto dto, long userId, CancellationToken ct = default)
     {
         var vehicle = await _repo.GetByIdForUserAsync(id, userId, ct);
-        if (vehicle is null) return null;
+        if (vehicle == null || vehicle.UserId != userId) return null;
 
-        // optional: prevent changing to an existing plate owned by someone else
         if (!string.Equals(vehicle.LicensePlate, dto.LicensePlate, StringComparison.OrdinalIgnoreCase)
             && await _repo.LicensePlateExistsAsync(dto.LicensePlate, ct))
         {

@@ -229,9 +229,9 @@ namespace MobyPark_api.tests.IntegrationTests
             var actualUser = db.Add(new User() {Username = "Arnout" }).Entity;
             db.SaveChanges();
             var actualVehicle = await sut.CreateAsync(vehicleDto, actualUser.Id);
-
+            Assert.NotNull(actualVehicle);
             //act
-            await sut.UpdateAsync(1, ElaborateVehicle, actualUser.Id);
+            await sut.UpdateAsync(actualVehicle.Id, ElaborateVehicle, actualUser.Id);
             var allVehicles = db.Vehicles.ToList();
             var vehicle = db.Vehicles.FirstOrDefault(v => v.Color == "teal");
 
@@ -282,7 +282,7 @@ namespace MobyPark_api.tests.IntegrationTests
             db.SaveChanges();
 
             //act
-            await sut.DeleteAsync(1, user.Id);
+            await sut.DeleteAsync(car.Id, user.Id);
             var vehicle = db.Vehicles.FirstOrDefault(v => v.LicensePlate == "55-rvp-12");
 
             Assert.Null(vehicle);

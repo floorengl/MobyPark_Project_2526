@@ -2,10 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using MobyPark_api.Enums;
 using MobyPark_api.Data.Models;
 using System.Reflection.Emit;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ValueGeneration;
 using Microsoft.Net.Http.Headers;
-using MobyPark_api.Data.Models;
 
 public class AppDbContext : DbContext
 {
@@ -192,7 +190,7 @@ public class AppDbContext : DbContext
         // Parkinglots.
         b.Entity<ParkingLot>(e =>
         {
-            e.ToTable("ParkingLots"); // <-- change if your table name is different
+            e.ToTable("ParkingLots");
             e.HasKey(x => x.Id);
 
             e.Property(x => x.Id)
@@ -219,7 +217,7 @@ public class AppDbContext : DbContext
 
             e.Property(x => x.Tariff)
                 .HasColumnName("tariff")
-                .HasColumnType("real"); // float in C# -> real in PG (or double precision)
+                .HasColumnType("real");
 
             e.Property(x => x.DayTariff)
                 .HasColumnName("day_tariff")
@@ -278,7 +276,5 @@ public class AppDbContext : DbContext
                 .HasForeignKey(x => x.ParkingLotId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
-
-
     }
 }
