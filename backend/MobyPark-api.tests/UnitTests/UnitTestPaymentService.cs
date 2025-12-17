@@ -6,6 +6,8 @@ using Moq;
 using Xunit;
 using MobyPark_api.Enums;
 
+namespace MobyPark_api.tests.UnitTests
+{
 
 public class PaymentServiceTests
 {
@@ -184,4 +186,6 @@ public class PaymentServiceTests
         Assert.Same(expected, actual);
         repo.Verify(r => r.GetAllPaymentsAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
+}
+
 }

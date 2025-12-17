@@ -1,6 +1,7 @@
 ﻿
 
-
+namespace MobyPark_api.tests.UnitTests
+{
     public class UnitTestReservationService
     {
 
@@ -80,4 +81,5 @@
             Assert.Equal(expected, actual);
 
         }
-    }
+}
+}

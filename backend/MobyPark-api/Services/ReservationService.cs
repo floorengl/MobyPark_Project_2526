@@ -95,7 +95,7 @@ public sealed class ReservationService : IReservationService
 
     public async Task<(bool, string)> IsReservationAllowed(WriteReservationDto dto)
     {
-        if (dto.StartTime.AddMinutes(30) < DateTime.UtcNow)
+        if (dto.StartTime.AddMinutes(30) < DateTime.Now)
             return (false, "Reservation cannot start in the past or within 30 minutes from now");
         if (dto.StartTime >= dto.EndTime)
             return (false, "EndTime is smaller than StartTime");
