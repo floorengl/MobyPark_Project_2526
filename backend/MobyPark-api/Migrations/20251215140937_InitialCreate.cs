@@ -49,19 +49,19 @@ namespace MobyPark_api.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "payments",
+                name: "transaction_data",
                 columns: table => new
                 {
-                    id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    createdat = table.Column<DateTime>(type: "timestamp", nullable: false),
-                    status = table.Column<int>(type: "int", nullable: false),
-                    hash = table.Column<string>(type: "text", nullable: false),
-                    tdata = table.Column<string>(type: "text", nullable: false)
+                    transaction_id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "uuid_generate_v4()"),
+                    amount = table.Column<decimal>(type: "numeric", nullable: false),
+                    date = table.Column<DateTime>(type: "timestamptz", nullable: false),
+                    method = table.Column<string>(type: "text", nullable: false),
+                    issuer = table.Column<string>(type: "text", nullable: false),
+                    bank = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_payments", x => x.id);
+                    table.PrimaryKey("PK_transaction_data", x => x.transaction_id);
                 });
 
             migrationBuilder.CreateTable(
@@ -135,6 +135,28 @@ namespace MobyPark_api.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "payments",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "uuid_generate_v4()"),
+                    amount = table.Column<decimal>(type: "numeric", nullable: false),
+                    createdat = table.Column<DateTime>(type: "timestamptz", nullable: false),
+                    status = table.Column<int>(type: "int", nullable: false),
+                    hash = table.Column<string>(type: "text", nullable: false),
+                    transaction_id = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_payments", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_payments_transaction_data_transaction_id",
+                        column: x => x.transaction_id,
+                        principalTable: "transaction_data",
+                        principalColumn: "transaction_id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Vehicles",
                 columns: table => new
                 {
@@ -163,6 +185,12 @@ namespace MobyPark_api.Migrations
                 name: "IX_licenseplates_license_plate_name",
                 table: "licenseplates",
                 column: "license_plate_name",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_payments_transaction_id",
+                table: "payments",
+                column: "transaction_id",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -206,6 +234,9 @@ namespace MobyPark_api.Migrations
 
             migrationBuilder.DropTable(
                 name: "Vehicles");
+
+            migrationBuilder.DropTable(
+                name: "transaction_data");
 
             migrationBuilder.DropTable(
                 name: "ParkingLots");

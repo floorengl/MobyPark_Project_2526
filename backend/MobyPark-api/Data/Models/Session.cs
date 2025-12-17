@@ -8,8 +8,6 @@ public class Session
     public DateTime? Stopped { get; set; }
     public short? DurationMinutes { get; set; }
     public float? Cost { get; set; }
-
-    // Snapshot so we still know which plate this was
     public string PlateText { get; set; } = null!;
 
     public Licenseplate LicensePlate { get; set; } = null!;

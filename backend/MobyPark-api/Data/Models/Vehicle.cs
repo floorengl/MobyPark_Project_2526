@@ -6,19 +6,14 @@ namespace MobyPark_api.Data.Models
     {
         [Key]
         public long Id { get; set; }
-
         [Required]
         public required string LicensePlate { get; set; }
-
         public string? Make { get; set; }
         public string? Model { get; set; }
         public string? Color { get; set; }
         public DateTime? Year { get; set; }
-
         public long UserId { get; set; }
         public User? User { get; set; }
-
-
-        public DateTime CreatedAt { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

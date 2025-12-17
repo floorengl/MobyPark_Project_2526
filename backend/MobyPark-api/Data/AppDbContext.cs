@@ -2,10 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using MobyPark_api.Enums;
 using MobyPark_api.Data.Models;
 using System.Reflection.Emit;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ValueGeneration;
 using Microsoft.Net.Http.Headers;
-using MobyPark_api.Data.Models;
 
 public class AppDbContext : DbContext
 {
@@ -19,19 +17,264 @@ public class AppDbContext : DbContext
     public DbSet<Reservation> Reservations => Set<Reservation>();
 
     public DbSet<Payment> Payments => Set<Payment>();
+    public DbSet<TransactionData> Transactions => Set<TransactionData>();
 
-    // Finds and applies all configurations.
     protected override void OnModelCreating(ModelBuilder b)
     {
-        b.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
-        b.HasPostgresExtension("uuid-ossp");
         base.OnModelCreating(b);
+        b.HasPostgresExtension("uuid-ossp");
+        // For config classes.
+        b.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+        // User.
         b.Entity<User>()
-        .HasMany(u => u.Vehicles)
-        .WithOne(v => v.User)
-        .HasForeignKey(v => v.UserId);
+            .HasMany(u => u.Vehicles)
+            .WithOne(v => v.User)
+            .HasForeignKey(v => v.UserId);
+        // Reservation.
         b.Entity<Reservation>()
-        .Property(r => r.Id)
-        .HasDefaultValueSql("uuid_generate_v4()");
+            .Property(r => r.Id)
+            .HasDefaultValueSql("uuid_generate_v4()");
+        // Licenseplate.
+        b.Entity<Licenseplate>(l =>
+        {
+            l.ToTable("licenseplates");
+            l.HasKey(x => x.Id);
+
+            l.Property(x => x.Id)
+                .HasColumnName("id")
+                .HasColumnType("bigint");
+
+            l.Property(x => x.LicensePlateName)
+                .HasColumnName("license_plate_name")
+                .HasMaxLength(10)
+                .IsRequired();
+
+            l.HasIndex(x => x.LicensePlateName).IsUnique();
+        });
+        // Session.
+        b.Entity<Session>(s =>
+        {
+            s.ToTable("sessions");
+            s.HasKey(x => x.Id);
+
+            s.Property(x => x.Started).IsRequired();
+
+            s.HasOne(x => x.LicensePlate)
+                .WithMany(p => p.Sessions)
+                .HasForeignKey(x => x.LicensePlateId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // Payment.
+        b.Entity<Payment>(e =>
+        {
+            e.ToTable("payments");
+            e.HasKey(x => x.Id);
+
+            e.Property(x => x.Id)
+                .HasColumnName("id")
+                .HasColumnType("uuid")
+                .HasDefaultValueSql("uuid_generate_v4()");
+
+            e.Property(x => x.Amount)
+                .HasColumnName("amount")
+                .HasColumnType("numeric");
+
+            e.Property(x => x.CreatedAt)
+                .HasColumnName("createdat")
+                .HasColumnType("timestamptz");
+
+            e.Property(x => x.Status)
+                .HasColumnName("status")
+                .HasColumnType("int"); 
+
+            e.Property(x => x.Hash)
+                .HasColumnName("hash")
+                .HasColumnType("text");
+
+            e.Property(x => x.TransactionId)
+                .HasColumnName("transaction_id")
+                .HasColumnType("uuid");
+
+            e.HasOne(x => x.TransactionData)
+                .WithOne()
+                .HasForeignKey<Payment>(x => x.TransactionId);
+        });
+        // Transaction data.
+        b.Entity<TransactionData>(e =>
+        {
+            e.ToTable("transaction_data");
+            e.HasKey(x => x.TransactionId);
+
+            e.Property(x => x.TransactionId)
+                .HasColumnName("transaction_id")
+                .HasColumnType("uuid")
+                .HasDefaultValueSql("uuid_generate_v4()");
+
+            e.Property(x => x.Amount)
+                .HasColumnName("amount")
+                .HasColumnType("numeric");
+
+            e.Property(x => x.Date)
+                .HasColumnName("date")
+                .HasColumnType("timestamptz");
+
+            e.Property(x => x.Method)
+                .HasColumnName("method")
+                .HasColumnType("text");
+
+            e.Property(x => x.Issuer)
+                .HasColumnName("issuer")
+                .HasColumnType("text");
+
+            e.Property(x => x.Bank)
+                .HasColumnName("bank")
+                .HasColumnType("text");
+        });
+
+        b.Entity<User>(e =>
+        {
+            e.ToTable("users");
+            e.HasKey(x => x.Id);
+
+            e.Property(x => x.Id)
+                .HasColumnName("id")
+                .HasColumnType("bigint");
+
+            e.Property(x => x.Username)
+                .HasColumnName("username")
+                .HasColumnType("text")
+                .IsRequired();
+
+            e.Property(x => x.Password)
+                .HasColumnName("password")
+                .HasColumnType("text")
+                .IsRequired();
+
+            e.Property(x => x.FullName)
+                .HasColumnName("name")
+                .HasColumnType("text");
+
+            e.Property(x => x.Email)
+                .HasColumnName("email")
+                .HasColumnType("text");
+
+            e.Property(x => x.Phone)
+                .HasColumnName("phone")
+                .HasColumnType("text");
+
+            e.Property(x => x.Role)
+                .HasColumnName("role")
+                .HasColumnType("text");
+
+            e.Property(x => x.CreatedAtUtc)
+                .HasColumnName("created-at")
+                .HasColumnType("timestamptz");
+
+            e.Property(x => x.BirthYear)
+                .HasColumnName("birth-year")
+                .HasColumnType("smallint");
+
+            e.Property(x => x.Active)
+                .HasColumnName("active")
+                .HasColumnType("boolean")
+                .HasDefaultValue(true);
+
+            e.HasIndex(x => x.Username)
+                .IsUnique()
+                .HasDatabaseName("ux_users_username");
+
+            e.HasIndex(x => x.Email)
+                .HasDatabaseName("ix_users_email");
+        });
+        // Parkinglots.
+        b.Entity<ParkingLot>(e =>
+        {
+            e.ToTable("ParkingLots");
+            e.HasKey(x => x.Id);
+
+            e.Property(x => x.Id)
+                .HasColumnName("id")
+                .HasColumnType("bigint");
+
+            e.Property(x => x.Name)
+                .HasColumnName("name")
+                .HasColumnType("text")
+                .IsRequired();
+
+            e.Property(x => x.Location)
+                .HasColumnName("location")
+                .HasColumnType("text")
+                .IsRequired();
+
+            e.Property(x => x.Address)
+                .HasColumnName("address")
+                .HasColumnType("text");
+
+            e.Property(x => x.Capacity)
+                .HasColumnName("capacity")
+                .HasColumnType("bigint");
+
+            e.Property(x => x.Tariff)
+                .HasColumnName("tariff")
+                .HasColumnType("real");
+
+            e.Property(x => x.DayTariff)
+                .HasColumnName("day_tariff")
+                .HasColumnType("real");
+
+            e.Property(x => x.CreatedAt)
+                .HasColumnName("created_at")
+                .HasColumnType("timestamptz");
+
+            e.Property(x => x.Coordinates)
+                .HasColumnName("coordinates")
+                .HasColumnType("text");
+        });
+        // Reservations.
+        b.Entity<Reservation>(e =>
+        {
+            e.ToTable("Reservations");
+            e.HasKey(x => x.Id);
+
+            e.Property(x => x.Id)
+                .HasColumnName("id")
+                .HasColumnType("uuid")
+                .HasDefaultValueSql("uuid_generate_v4()");
+
+            e.Property(x => x.ParkingLotId)
+                .HasColumnName("parking_lot_id")
+                .HasColumnType("bigint");
+
+            e.Property(x => x.LicensePlate)
+                .HasColumnName("license_plate")
+                .HasColumnType("text")
+                .IsRequired();
+
+            e.Property(x => x.StartTime)
+                .HasColumnName("start_time")
+                .HasColumnType("timestamptz");
+
+            e.Property(x => x.EndTime)
+                .HasColumnName("end_time")
+                .HasColumnType("timestamptz");
+
+            e.Property(x => x.CreatedAt)
+                .HasColumnName("created_at")
+                .HasColumnType("timestamptz");
+
+            e.Property(x => x.Cost)
+                .HasColumnName("cost")
+                .HasColumnType("real");
+
+            e.Property(x => x.Status)
+                .HasColumnName("status")
+                .HasColumnType("int");
+
+            e.HasOne(x => x.ParkingLot)
+                .WithMany()
+                .HasForeignKey(x => x.ParkingLotId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
     }
 }

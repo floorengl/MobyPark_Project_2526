@@ -11,12 +11,12 @@ namespace MobyPark_api.Data.Models
         public long Id { get; set; }
 
         [Required]
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         [Required]
-        public string Location { get; set; }
+        public string? Location { get; set; }
 
-        public string Address { get; set; }
+        public string? Address { get; set; }
 
         public long Capacity { get; set; }
 
@@ -26,6 +26,6 @@ namespace MobyPark_api.Data.Models
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public string Coordinates { get; set; }
+        public string? Coordinates { get; set; }
     }
 }

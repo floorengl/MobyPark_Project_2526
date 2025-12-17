@@ -29,8 +29,10 @@ namespace MobyPark_api.tests.IntegrationTests
                     { "Jwt:Minutes", "60" }
                 }!)
                 .Build();
+            var db = _fixture.CreateContext();
+            var userRepo = new UserRepository(db);
 
-            return new AuthService(_fixture.CreateContext(), new PasswordHasher<User>(), configuration);
+            return new AuthService(userRepo, new PasswordHasher<User>(), configuration);
         }
         
         [Fact]
@@ -126,7 +128,7 @@ namespace MobyPark_api.tests.IntegrationTests
             await _fixture.ResetDB();
 
             // arrange
-            var db = _fixture.CreateContext(); // avoid using SUT's DbContext for this test
+            var db = _fixture.CreateContext();
             var configuration = new ConfigurationBuilder()
                 .AddInMemoryCollection(new Dictionary<string, string?>
                 {
@@ -137,7 +139,9 @@ namespace MobyPark_api.tests.IntegrationTests
                 }!)
                 .Build();
 
-            var SUT = new AuthService(db, new PasswordHasher<User>(), configuration);
+            var userRepo = new UserRepository(db);
+            var SUT = new AuthService(userRepo, new PasswordHasher<User>(), configuration);
+
 
             RegisterRequestDto dto = new RegisterRequestDto { Username = "Bob", Password = "password123!" };
             long id = await SUT.RegisterAsync(dto, CancellationToken.None);
