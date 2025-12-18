@@ -25,6 +25,29 @@ public sealed class ReservationService : IReservationService
         return ReservationToReadDto(entity);
     }
 
+    public async Task<List<ReadReservationDto>?> Post(WriteMultiReservationDto dto)
+    {
+        List<ReadReservationDto> results = new();
+
+        // Reuse existing single-reservation post per vehicle
+        foreach (var plate in dto.LicensePlates)
+        {
+            var singleDto = new WriteReservationDto
+            {
+                LicensePlate = plate,
+                ParkingLotId = dto.ParkingLotId,
+                StartTime = dto.StartTime,
+                EndTime = dto.EndTime
+            };
+
+            var postedReservation = await Post(singleDto);
+            if (postedReservation != null)
+                results.Add(postedReservation);
+        }
+
+        return results;
+    }
+
     public async Task<ReadReservationDto?> Post(WriteReservationDto dto)
     {
         var lot = await _parkingLots.GetByIdAsync(dto.ParkingLotId);
@@ -93,7 +116,46 @@ public sealed class ReservationService : IReservationService
         };
     }
 
-    public async Task<(bool, string)> IsReservationAllowed(WriteReservationDto dto)
+    public async Task<(bool, string)> IsReservationAllowed(WriteMultiReservationDto dto)
+    {
+        if (dto.LicensePlates == null || dto.LicensePlates.Length == 0)
+            return (false, "At least one vehicle is required");
+
+        // Validate parking lot once
+        var lot = await _parkingLots.GetByIdAsync(dto.ParkingLotId);
+        if (lot == null)
+            return (false, "Parkinglot ID does not exist in the database");
+
+        // Capacity check INCLUDING number of vehicles
+        if (await WillParkingLotOverflow(
+                dto.StartTime,
+                dto.EndTime,
+                dto.ParkingLotId,
+                baseLoad: dto.LicensePlates.Length - 1))
+        {
+            return (false, "Parkinglot does not have enough capacity for all vehicles");
+        }
+
+        // Reuse existing single-reservation validation per vehicle
+        foreach (var plate in dto.LicensePlates)
+        {
+            var singleDto = new WriteReservationDto
+            {
+                LicensePlate = plate,
+                ParkingLotId = dto.ParkingLotId,
+                StartTime = dto.StartTime,
+                EndTime = dto.EndTime
+            };
+
+            var result = await IsReservationAllowed(singleDto);
+            if (!result.Item1)
+                return result;
+        }
+
+        return (true, "multi reservation allowed");
+    }
+
+    public async Task<(bool, string)> IsReservationAllowed(WriteReservationDto dto) 
     {
         if (dto.StartTime.AddMinutes(30) < DateTime.UtcNow)
             return (false, "Reservation cannot start in the past or within 30 minutes from now");
