@@ -34,8 +34,8 @@ public sealed class ReservationService : IReservationService
         {
             LicensePlate = dto.LicensePlate,
             ParkingLotId = dto.ParkingLotId,
-            StartTime = dto.StartTime,
-            EndTime = dto.EndTime,
+            StartTime = dto.StartTime.ToUniversalTime(),
+            EndTime = dto.EndTime.ToUniversalTime(),
             CreatedAt = DateTime.UtcNow,
             Status = ReservationStatus.UnUsed,
             Cost = CalculateReservationCost(dto.StartTime, dto.EndTime, lot)
@@ -131,6 +131,7 @@ public sealed class ReservationService : IReservationService
 
     public async Task<ReadReservationDto?> GetActiveReservation(string licensePlate, DateTime time)
     {
+        time = time.ToUniversalTime();
         var entity = await _reservations.GetActiveReservationEntityAsync(licensePlate, time);
         return ReservationToReadDto(entity);
     }
