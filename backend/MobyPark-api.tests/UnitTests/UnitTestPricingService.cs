@@ -27,6 +27,22 @@ namespace MobyPark_api.tests.UnitTests
             };
         }
 
+        public ParkingLot MakeLot2()
+        {
+            return new ParkingLot()
+            {
+                Id = 345,
+                Name = "The Mall Parking Roof",
+                Location = "Along Highway",
+                Address = "Laan van VN 10",
+                Capacity = 4405,
+                Tariff = 2,
+                DayTariff = 40,
+                CreatedAt = DateTime.Now,
+                Coordinates = "Cool Place"
+            };
+        }
+
         [Fact]
         public void Test_CalculatePrice_NoDiscount_10_Hours_5Minutes()
         {
@@ -172,7 +188,7 @@ namespace MobyPark_api.tests.UnitTests
         }
 
         [Fact]
-        public void Test_CalculatePrice_Discount_50percent_HalfPrice() // test for float point inaccuracy
+        public void Test_CalculatePrice_Discount_50percent_HalfPrice()
         {
             // arrange
             DateTime start = new DateTime(20, 1, 1, 0, 0, 0, DateTimeKind.Utc);
@@ -186,7 +202,7 @@ namespace MobyPark_api.tests.UnitTests
                 End = new DateTime(21, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                 Amount = 0.5m,
                 Operator = Operator.Multiply,
-                ParkingLotId = lot.Id,
+                ParkingLotIds = [lot.Id],
             };
 
             // act
@@ -197,7 +213,29 @@ namespace MobyPark_api.tests.UnitTests
         }
 
         [Fact]
-        public void Test_CalculatePrice_DiscountStopsHalfway() // test for float point inaccuracy
+        public void Test_CalculatePrice_MegaDiscount_PriceIsSetToZero_DoesntBecomeNegative()
+        {
+            // arrange
+            DateTime start = new DateTime(20, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            DateTime end = new DateTime(20, 1, 1, 9, 0, 0, DateTimeKind.Utc);
+            ParkingLot lot = MakeLot();
+
+            Discount discount = new()
+            {
+                DiscountType = DiscountType.NoExtraCriteria,
+                Amount = -10_000_000m,
+                Operator = Operator.Plus,
+            };
+
+            // act
+            decimal price = PricingService.CalculatePrice(start, end, lot, [discount]);
+
+            // assert
+            Assert.Equal(0, price);
+        }
+
+        [Fact]
+        public void Test_CalculatePrice_DiscountStopsHalfway()
         {
             // arrange
             DateTime start = new DateTime(20, 1, 1, 0, 0, 0, DateTimeKind.Utc);
@@ -211,7 +249,7 @@ namespace MobyPark_api.tests.UnitTests
                 End = new DateTime(20, 1, 1, 4, 30, 0, DateTimeKind.Utc),
                 Amount = 0.5m,
                 Operator = Operator.Multiply,
-                ParkingLotId = lot.Id,
+                ParkingLotIds = [lot.Id],
             };
 
             // act
@@ -236,7 +274,7 @@ namespace MobyPark_api.tests.UnitTests
                 End = null,
                 Amount = -5m,
                 Operator = Operator.Plus,
-                ParkingLotId = lot.Id,
+                ParkingLotIds = [lot.Id],
             };
 
             // act
@@ -261,7 +299,7 @@ namespace MobyPark_api.tests.UnitTests
                 End = new DateTime(20, 1, 1, 4, 3, 0, DateTimeKind.Utc),
                 Amount = 0.5m,
                 Operator = Operator.Multiply,
-                ParkingLotId = lot.Id,
+                ParkingLotIds = [lot.Id],
             };
 
             // act
@@ -285,7 +323,7 @@ namespace MobyPark_api.tests.UnitTests
                 DiscountType = DiscountType.NoExtraCriteria,
                 Amount = 0.5m,
                 Operator = Operator.Multiply,
-                ParkingLotId = lot.Id,
+                ParkingLotIds = [lot.Id],
             };
 
             Discount discount2 = new()
@@ -293,7 +331,7 @@ namespace MobyPark_api.tests.UnitTests
                 DiscountType = DiscountType.NoExtraCriteria,
                 Amount = -1.5m,
                 Operator = Operator.Plus,
-                ParkingLotId = lot.Id,
+                ParkingLotIds = [lot.Id],
             };
 
             Discount discount3 = new()
@@ -301,7 +339,7 @@ namespace MobyPark_api.tests.UnitTests
                 DiscountType = DiscountType.NoExtraCriteria,
                 Amount = -0.5m,
                 Operator = Operator.Plus,
-                ParkingLotId = lot.Id,
+                ParkingLotIds = [lot.Id],
             };
 
             Discount discount4 = new()
@@ -309,7 +347,7 @@ namespace MobyPark_api.tests.UnitTests
                 DiscountType = DiscountType.NoExtraCriteria,
                 Amount = 0.25m,
                 Operator = Operator.Multiply,
-                ParkingLotId = lot.Id,
+                ParkingLotIds = [lot.Id],
             };
 
             // act
@@ -318,24 +356,49 @@ namespace MobyPark_api.tests.UnitTests
             // assert
             Assert.Equal(3m, price);
         }
+
+        [Fact]
+        public void Test_CalculatePrice_DiscountForMultipleLots()
+        {
+            {
+                // arrange
+                DateTime start = new DateTime(20, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                DateTime end = new DateTime(20, 1, 1, 9, 0, 0, DateTimeKind.Utc);
+                ParkingLot lot1 = MakeLot();
+                ParkingLot lot2 = MakeLot2();
+
+                Discount discount1 = new()
+                {
+                    DiscountType = DiscountType.NoExtraCriteria,
+                    Amount = 0.5m,
+                    Operator = Operator.Multiply,
+                    ParkingLotIds = [lot1.Id, lot2.Id],
+                };
+
+                Discount discount2 = new()
+                {
+                    DiscountType = DiscountType.NoExtraCriteria,
+                    Amount = -15m,
+                    Operator = Operator.Plus,
+                    ParkingLotIds = [lot2.Id],
+                };
+
+                // act
+                decimal price1 = PricingService.CalculatePrice(start, end, lot1, [discount1, discount2]);
+                decimal price2 = PricingService.CalculatePrice(start, end, lot2, [discount1, discount2]);
+
+                // assert
+                Assert.Equal(5m, price1);
+                Assert.Equal(2.5m, price2);
+            }
+        }
+
+
+
+
+
+
+
+
     }
 }
-//public long Id { get; set; }
-
-//[Required]
-//public string? Name { get; set; }
-
-//[Required]
-//public string? Location { get; set; }
-
-//public string? Address { get; set; }
-
-//public long Capacity { get; set; }
-
-//public float? Tariff { get; set; }
-
-//public float? DayTariff { get; set; }
-
-//public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-//public string? Coordinates { get; set; }

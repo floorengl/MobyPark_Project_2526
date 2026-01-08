@@ -35,14 +35,19 @@ public class PricingService: IPricingService
             price = dayTariff * (hours / 24 + 1);
         }
         price = ApplyDiscount(price, start, end, lot, discounts);
+
+        if (price < 0)
+            price = 0;
+
         return price;
     }
 
     public static decimal ApplyDiscount(decimal price, DateTime start, DateTime end, ParkingLot lot, Discount[] discounts)
     {
+        var discountsForLot = discounts.Where(d => d.ParkingLotIds == null || d.ParkingLotIds.Contains(lot.Id));
         // spread discounts
-        Discount[] PlusDiscounts = discounts.Where(d => d.Operator == MobyPark_api.Enums.Operator.Plus).ToArray();
-        Discount[] MultDiscounts = discounts.Where(d => d.Operator == MobyPark_api.Enums.Operator.Multiply).ToArray();
+        Discount[] PlusDiscounts = discountsForLot.Where(d => d.Operator == MobyPark_api.Enums.Operator.Plus).ToArray();
+        Discount[] MultDiscounts = discountsForLot.Where(d => d.Operator == MobyPark_api.Enums.Operator.Multiply).ToArray();
 
         foreach (Discount discount in PlusDiscounts)
         {
