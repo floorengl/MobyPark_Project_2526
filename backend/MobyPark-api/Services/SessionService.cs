@@ -38,7 +38,7 @@ public sealed class SessionService : ISessionService
         // parking lot tariff
         var parkinglot = await _repo.GetParkingLotAsync(parkingLotId, ct);
         var pricePerHour = parkinglot?.Tariff ?? 0;
-        session.Cost = (float)(minutes / 60.0) * pricePerHour;
+        session.Cost = (decimal)(minutes / 60.0) * pricePerHour;
         await _repo.SaveChangesAsync(ct);
         // Create payment
         var addDto = new AddPaymentDto

@@ -7,7 +7,7 @@ public class Session
     public DateTime Started { get; set; }
     public DateTime? Stopped { get; set; }
     public short? DurationMinutes { get; set; }
-    public float? Cost { get; set; }
+    public decimal? Cost { get; set; }
     public string PlateText { get; set; } = null!;
 
     public Licenseplate LicensePlate { get; set; } = null!;

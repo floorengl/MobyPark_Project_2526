@@ -182,11 +182,12 @@ public sealed class ReservationService : IReservationService
 
     public float CalculateReservationCost(DateTime start, DateTime end, ParkingLot lot)
     {
-        var total = end - start;
-        if (total >= TimeSpan.FromDays(1) && lot.DayTariff != null)
-            return total.Days * lot.DayTariff.Value;
+        //var total = end - start;
+        //if (total >= TimeSpan.FromDays(1) && lot.DayTariff != null)
+        //    return total.Days * lot.DayTariff.Value;
 
-        return (int)total.TotalHours * (lot.Tariff ?? 0);
+        //return (int)total.TotalHours * (lot.Tariff ?? 0);
+        return 99999;
     }
 }
 
