@@ -2,15 +2,17 @@
 using Microsoft.Extensions.Hosting;
 using MobyPark_api.Data.Models;
 using MobyPark_api.Dtos.Reservation;
+using MobyPark_api.Enums;
 
 
 public sealed class ReservationService : IReservationService
 {
     private readonly IReservationRepository _reservations;
     private readonly IParkingLotRepository _parkingLots;
+    private readonly IPaymentService _payments;
 
-    public ReservationService(IReservationRepository reservations, IParkingLotRepository parkingLots)
-        => (_reservations, _parkingLots) = (reservations, parkingLots);
+    public ReservationService(IReservationRepository reservations, IParkingLotRepository parkingLots, IPaymentService payments)
+        => (_reservations, _parkingLots, _payments) = (reservations, parkingLots, payments);
 
     public async Task<ReadReservationDto[]> GetAll()
     {
@@ -37,13 +39,30 @@ public sealed class ReservationService : IReservationService
             StartTime = dto.StartTime,
             EndTime = dto.EndTime,
             CreatedAt = DateTime.UtcNow,
-            Status = ReservationStatus.UnUsed,
+            Status = ReservationStatus.UnUsed, // we mock payment as always successful
             Cost = CalculateReservationCost(dto.StartTime, dto.EndTime, lot)
         };
 
         await _reservations.AddAsync(reservation);
         await _reservations.SaveChangesAsync();
 
+        var payment = new AddPaymentDto
+        {
+            Amount = (decimal)reservation.Cost,
+            CreatedAt = DateTime.UtcNow,
+            Status = PaymentStatus.Complete,
+            Hash = null,
+            Transaction = new TransactionDataDto
+            {
+                Amount = (decimal)reservation.Cost,
+                Date = DateTime.UtcNow,
+                Method = "ideal",
+                Issuer = "XYY910HH",
+                Bank = "ABN-NL"
+            }
+        };
+
+        await _payments.AddPaymentAsync(payment);
         return ReservationToReadDto(reservation);
     }
 
