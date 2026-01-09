@@ -19,6 +19,8 @@ public class AppDbContext : DbContext
 
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<TransactionData> Transactions => Set<TransactionData>();
+    public DbSet<Discount> Discounts => Set<Discount>();
+    public DbSet<DiscountParkingLot> DiscountParkingLots => Set<DiscountParkingLot>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -276,6 +278,61 @@ public class AppDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(x => x.ParkingLotId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+        b.Entity<Discount>(e =>
+        {
+            e.ToTable("Discounts");
+            e.HasKey(e => e.Id);
+
+            e.Property(x => x.Id)
+                .HasColumnName("id")
+                .HasColumnType("bigint");
+
+            e.Property(x => x.Title)
+                .HasColumnName("title")
+                .HasColumnType("text");
+
+            e.Property(x => x.Amount)
+                .HasColumnName("amount")
+                .HasColumnType("real");
+
+            e.Property(x => x.Operator)
+                .HasColumnName("operator")
+                .HasColumnType("int");
+
+            e.Property(x => x.Start)
+                .HasColumnName("start")
+                .HasColumnType("timestamptz");
+
+            e.Property(x => x.End)
+            .HasColumnName("end")
+            .HasColumnType("timestamptz");
+
+            e.Property(x => x.DiscountType)
+                .HasColumnName("discount-type")
+                .HasColumnType("int");
+
+            e.Property(x => x.TypeSpecificData)
+                .HasColumnName("type-specific-data")
+                .HasColumnType("text");
+        });
+
+        b.Entity<DiscountParkingLot>(e =>
+        {
+            e.ToTable("discount-parking-lot");
+            e.HasKey(e => e.Id);
+
+            e.Property(x => x.Id)
+                .HasColumnName("id")
+                .HasColumnType("bigint");
+
+            e.Property(x => x.ParkingLotId)
+                .HasColumnName("parking-lot-id")
+                .HasColumnType("bigint");
+
+            e.Property(x => x.DiscountId)
+                .HasColumnName("discount-id")
+                .HasColumnType("bigint");
         });
     }
 }

@@ -1,10 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Net.Http.Json;
-using System.Text.Json;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
-using MobyPark_api.Data.Models;
+using MobyPark_api.tests.Utils;
 using MobyPark_api.Dtos.Reservation;
 
 namespace MobyPark_api.tests.EndToEndTests
@@ -16,118 +13,13 @@ namespace MobyPark_api.tests.EndToEndTests
 
         public TestReservationController(WholeAppFixture appfixutre) => _appfixutre = appfixutre;
 
-        public async Task<HttpClient> LoginWithUser1()
-        {
-            var account = new Dictionary<string, string>
-            {
-                { "username", "user1" },
-                { "password", "password123-" }
-            };
-
-            var client = _appfixutre.CreateClient();
-            var createContent = JsonContent.Create(account);
-
-
-            var loginResponse = await client.PostAsync("login", createContent);
-
-            var loginJson = await loginResponse.Content.ReadFromJsonAsync<JsonElement>();
-            string jwt = loginJson.GetProperty("token").GetProperty("accessToken").GetString()!;
-
-
-            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwt);
-
-            return client;
-        }
-
-        public async Task<HttpClient> LoginWithAdmin()
-        {
-            var account = new Dictionary<string, string>
-            {
-                { "username", "admin1" },
-                { "password", "password123-" }
-            };
-
-            var client = _appfixutre.CreateClient();
-            var createContent = JsonContent.Create(account);
-
-
-            var loginResponse = await client.PostAsync("login", createContent);
-
-            var loginJson = await loginResponse.Content.ReadFromJsonAsync<JsonElement>();
-            string jwt = loginJson.GetProperty("token").GetProperty("accessToken").GetString()!;
-
-
-            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwt);
-
-            return client;
-        }
-
-        private async Task<long> SeedDatabase()
-        {
-            var db = _appfixutre.GetDatabaseFixture().CreateContext();
-
-            IParkingLotRepository lots = new ParkingLotRepository(db);
-            ParkingLot lot = new()
-            {
-                Name = "MobysMegaPark",
-                Location = "Center",
-                Address = "Moby Dick Street 101",
-                Capacity = 1,
-                Tariff = 10,
-                DayTariff = 100,
-                Coordinates = "Just Over The Horizon"
-            };
-            await db.AddAsync(lot);
-            await db.SaveChangesAsync();
-            var lotId = lot.Id;
-
-            var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                    { "Jwt:Key", "01234567890123456789012345678901" }, // 32 chars = 256 bits
-                    { "Jwt:Issuer", "TestIssuer" },
-                    { "Jwt:Audience", "TestAudience" },
-                    { "Jwt:Minutes", "60" }
-            }!)
-            .Build();
-
-            IAuthService userService = new AuthService(new UserRepository(db), new PasswordHasher<User>(), configuration);
-            IUserRepository userRepository = new UserRepository(db);
-            RegisterRequestDto user1 = new()
-            {
-                Username = "user1",
-                Password = "password123-",
-            };
-            await userService.RegisterAsync(user1, new CancellationToken());
-
-            RegisterRequestDto user2 = new()
-            {
-                Username = "user2",
-                Password = "password123-",
-            };
-            await userService.RegisterAsync(user2, new CancellationToken());
-
-            User admin1 = new()
-            {
-                Username = "admin1",
-                Password = "AQAAAAIAAYagAAAAEB7nHmznKhQAU+8TooW4FwVYqKpEkM1s0bpQiXVZuro3HcvA5/1wrjd3utR0Aep1cw==", // unhashed == password123-
-                Role = "ADMIN",
-            };
-            await userRepository.AddAsync(admin1, new CancellationToken());
-            await userRepository.SaveChangesAsync();
-
-
-
-            return lotId;
-        }
-
         // unfinished test
         [Fact]
         public async Task Test_CannotUseUnpaidReservation()
         {
             await _appfixutre.ResetDB();
-            var lotId = await SeedDatabase();
-            var client = await LoginWithUser1();
+            var lotId = await EndToEndSeeding.SeedDatabase(_appfixutre);
+            var client = await EndToEndSeeding.LoginWithUser1(_appfixutre);
 
             var reservationrequest = JsonContent.Create(new WriteReservationDto() {
                 StartTime = DateTime.UtcNow.AddHours(8), 
@@ -145,8 +37,8 @@ namespace MobyPark_api.tests.EndToEndTests
         public async Task Test_Add_Get_Delete_Reservation()
         {
             await _appfixutre.ResetDB();
-            var lotId = await SeedDatabase();
-            var client = await LoginWithUser1();
+            var lotId = await EndToEndSeeding.SeedDatabase(_appfixutre);
+            var client = await EndToEndSeeding.LoginWithUser1(_appfixutre);
 
             var reservationrequest = JsonContent.Create(new WriteReservationDto()
             {
@@ -184,8 +76,8 @@ namespace MobyPark_api.tests.EndToEndTests
         public async Task Test_Add_InvalidDTOIsRejected()
         {
             await _appfixutre.ResetDB();
-            var lotId = await SeedDatabase();
-            var client = await LoginWithUser1();
+            var lotId = await EndToEndSeeding.SeedDatabase(_appfixutre);
+            var client = await EndToEndSeeding.LoginWithUser1(_appfixutre);
 
             var reservationrequest = JsonContent.Create(new WriteReservationDto()
             {
@@ -204,8 +96,8 @@ namespace MobyPark_api.tests.EndToEndTests
         public async Task Test_GetAll()
         {
             await _appfixutre.ResetDB();
-            var lotId = await SeedDatabase();
-            var client = await LoginWithAdmin();
+            var lotId = await EndToEndSeeding.SeedDatabase(_appfixutre);
+            var client = await EndToEndSeeding.LoginWithAdmin(_appfixutre);
 
             // we should be logged in with the admin account now
             Assert.NotNull(client);
@@ -257,8 +149,8 @@ namespace MobyPark_api.tests.EndToEndTests
         public async Task Test_HasActiveReservation_No_Active_Reservation()
         {
             await _appfixutre.ResetDB();
-            var lotId = await SeedDatabase();
-            var client = await LoginWithUser1();
+            var lotId = await EndToEndSeeding.SeedDatabase(_appfixutre);
+            var client = await EndToEndSeeding.LoginWithUser1(_appfixutre);
 
             var reservationrequest1 = JsonContent.Create(new WriteReservationDto()
             {
@@ -279,8 +171,8 @@ namespace MobyPark_api.tests.EndToEndTests
         public async Task Test_HasActiveReservation_Active_Reservation()
         {
             await _appfixutre.ResetDB();
-            var lotId = await SeedDatabase();
-            var client = await LoginWithUser1();
+            var lotId = await EndToEndSeeding.SeedDatabase(_appfixutre);
+            var client = await EndToEndSeeding.LoginWithUser1(_appfixutre);
 
             var reservationrequest1 = JsonContent.Create(new WriteReservationDto()
             {

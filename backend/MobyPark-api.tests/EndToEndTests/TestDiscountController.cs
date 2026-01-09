@@ -1,0 +1,137 @@
+﻿using System.Net.Http.Json;
+using MobyPark_api.Dtos.Discount;
+using MobyPark_api.Dtos.Reservation;
+using MobyPark_api.tests.Utils;
+using System.Net;
+
+namespace MobyPark_api.tests.EndToEndTests
+{
+    [Collection("SharedWholeApp")]
+    public class TestDiscountController
+    {
+        private readonly WholeAppFixture _appfixutre;
+
+        public TestDiscountController(WholeAppFixture appfixutre) => _appfixutre = appfixutre;
+
+        [Fact]
+        ///This test will go through all crud options in a happy flow.
+        public async Task Test_HappyFlowCrudDiscount()
+        {
+            await _appfixutre.ResetDB();
+            var lotId = await EndToEndSeeding.SeedDatabase(_appfixutre);
+            var client = await EndToEndSeeding.LoginWithAdmin(_appfixutre);
+
+            // create
+            var now = DateTime.Now;
+
+            var discountToAdd = JsonContent.Create(new WriteDiscountDto()
+            {
+                Title = "BOGUS DISCOUNT",
+                Amount = 0.75m,
+                Operator = Enums.Operator.Multiply,
+                ParkingLotIds = [lotId],
+                Start = now,
+                End = now.AddDays(30),
+                DiscountType = Enums.DiscountType.NoExtraCriteria
+            });
+
+            var createResponse = await client.PostAsync("discount", discountToAdd);
+            var createResponseDto = await createResponse.Content.ReadFromJsonAsync<ReadDiscountDto>();
+
+            Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+
+            // read (get by ID)
+            var read1Response = await client.GetAsync($"discount/{createResponseDto.Id}");
+            var read1ResponseDto = await read1Response.Content.ReadFromJsonAsync<ReadDiscountDto>();
+            
+            Assert.Equal(HttpStatusCode.OK, read1Response.StatusCode);
+
+            Assert.Equal(0.75m, read1ResponseDto.Amount);
+            Assert.Equal(Enums.Operator.Multiply, read1ResponseDto.Operator);
+            Assert.Equal(Enums.DiscountType.NoExtraCriteria, read1ResponseDto.DiscountType);
+
+            // update
+            var discountToUpdate = JsonContent.Create(new WriteDiscountDto()
+            {
+                Title = "BOGUS DISCOUNT",
+                Amount = 0.5m,
+                Operator = Enums.Operator.Multiply,
+                ParkingLotIds = [lotId],
+            });
+
+            var putresponse = await client.PutAsync($"discount/{read1ResponseDto.Id}", discountToUpdate);
+            Assert.Equal(HttpStatusCode.OK, putresponse.StatusCode);
+
+            // read (get all)
+            var allDiscounts = await client.GetAsync("discount");
+            var allDiscountsDto = await allDiscounts.Content.ReadFromJsonAsync<ReadDiscountDto[]>();
+            Assert.Equal(HttpStatusCode.OK, allDiscounts.StatusCode);
+            Assert.Single(allDiscountsDto);
+
+            var onlyDiscount = allDiscountsDto[0];
+            // check some values default state. These where set by the create. But have been overwritten by the default value via the put call.
+            Assert.Null(onlyDiscount.Start);
+            Assert.Null(onlyDiscount.End);
+            Assert.Equal(Enums.DiscountType.NoExtraCriteria, onlyDiscount.DiscountType);
+            Assert.Null(onlyDiscount.TypeSpecificData);
+
+            var delResponse = await client.DeleteAsync($"discount/{onlyDiscount.Id}");
+            Assert.Equal(HttpStatusCode.NoContent, delResponse.StatusCode);
+
+            var allDiscountsAfterDelete = await client.GetAsync("discount");
+            var allDiscountsAfterDeleteDto = await allDiscountsAfterDelete.Content.ReadFromJsonAsync<ReadDiscountDto[]>();
+
+            Assert.NotNull(allDiscountsAfterDeleteDto);
+            Assert.Empty(allDiscountsAfterDeleteDto);
+        }
+
+        [Fact]
+        public async Task Test_CannotAccessDiscountsAsUser()
+        {
+            await _appfixutre.ResetDB();
+            var lotId = await EndToEndSeeding.SeedDatabase(_appfixutre);
+            var client = await EndToEndSeeding.LoginWithUser1(_appfixutre);
+
+            var getAllResponse = await client.GetAsync("discount");
+            Assert.Equal(HttpStatusCode.Forbidden, getAllResponse.StatusCode);
+
+        }
+
+        [Fact]
+        public async Task Test_DiscountChangesPriceOfSession()
+        {
+
+        }
+
+        [Fact]
+        public async Task Test_DiscountChangesPriceOfReservation()
+        {
+
+        }
+
+        [Fact]
+        public async Task Test_PriceForSessionIsCorrect_1()
+        {
+
+        }
+
+        [Fact]
+        public async Task Test_PriceForSessionIsCorrect_2()
+        {
+
+        }
+
+        [Fact]
+        public async Task Test_InvalidDiscountRejected_EndBeforeStart()
+        {
+
+        }
+
+        [Fact]
+        public async Task Test_InvalidDiscountRejected_NoExtraCriteriaCantHaveTypeSpecificData()
+        {
+
+        }
+
+    }
+}

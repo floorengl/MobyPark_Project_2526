@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using MobyPark_api.Data.Repositories;
+using MobyPark_api.Services;
 using MobyPark_api.Services.ParkingLot;
 
 
@@ -28,6 +30,7 @@ public class Program
         builder.Services.AddScoped<IParkingLotService, ParkingLotService>();
         builder.Services.AddScoped<IVehicleService, VehicleService>();
         builder.Services.AddScoped<IPaymentService, PaymentService>();
+        builder.Services.AddScoped<IDiscountService, DiscountService>();
         // Repositories
         builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
         builder.Services.AddScoped<ILicenseplateRepository, LicenseplateRepository>();
@@ -37,6 +40,7 @@ public class Program
         builder.Services.AddScoped<IUserRepository, UserRepository>();
         builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
         builder.Services.AddScoped<IParkingLotRepository, ParkingLotRepository>();
+        builder.Services.AddScoped<IDiscountRepository, DiscountRepository>();
 
 
         // JWT authentication.
