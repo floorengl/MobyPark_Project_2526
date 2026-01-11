@@ -37,6 +37,10 @@ namespace MobyPark_api.Controllers
         public async Task<IActionResult> Create([FromBody] WriteDiscountDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var legallity = _service.IsModelLegal(dto);
+            if (!legallity.isLegal) return BadRequest(legallity.reason);
+
             var result = await _service.CreateAsync(dto);
             return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
         }
@@ -46,6 +50,10 @@ namespace MobyPark_api.Controllers
         public async Task<IActionResult> Update([FromRoute] long id, [FromBody] WriteDiscountDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var legallity = _service.IsModelLegal(dto);
+            if (!legallity.isLegal) return BadRequest(legallity.reason);
+
             var result = await _service.UpdateAsync(id, dto);
             if (result == null) return NotFound();
             return Ok(result);

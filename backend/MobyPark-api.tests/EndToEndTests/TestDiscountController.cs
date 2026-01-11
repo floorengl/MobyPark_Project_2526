@@ -124,14 +124,91 @@ namespace MobyPark_api.tests.EndToEndTests
         [Fact]
         public async Task Test_InvalidDiscountRejected_EndBeforeStart()
         {
+            // arrange
+            await _appfixutre.ResetDB();
+            var lotId = await EndToEndSeeding.SeedDatabase(_appfixutre);
+            var client = await EndToEndSeeding.LoginWithAdmin(_appfixutre);
 
+            var now = DateTime.Now;
+
+            var discountToAdd = JsonContent.Create(new WriteDiscountDto()
+            {
+                Title = "BOGUS DISCOUNT",
+                Amount = 0.75m,
+                Operator = Enums.Operator.Multiply,
+                ParkingLotIds = [lotId],
+                Start = now.AddDays(800),
+                End = now.AddDays(30),
+                DiscountType = Enums.DiscountType.NoExtraCriteria
+            });
+
+            // act
+            var createResponse = await client.PostAsync("discount", discountToAdd);
+            var createResponseDto = await createResponse.Content.ReadAsStringAsync();
+
+            //assert
+            Assert.Equal(HttpStatusCode.BadRequest, createResponse.StatusCode);
+            Assert.Equal("end cannot be before start", createResponseDto);
         }
 
         [Fact]
         public async Task Test_InvalidDiscountRejected_NoExtraCriteriaCantHaveTypeSpecificData()
         {
+            // arrange
+            await _appfixutre.ResetDB();
+            var lotId = await EndToEndSeeding.SeedDatabase(_appfixutre);
+            var client = await EndToEndSeeding.LoginWithAdmin(_appfixutre);
 
+            var now = DateTime.Now;
+
+            var discountToAdd = JsonContent.Create(new WriteDiscountDto()
+            {
+                Title = "BOGUS DISCOUNT",
+                Amount = 0.75m,
+                Operator = Enums.Operator.Multiply,
+                ParkingLotIds = [lotId],
+                Start = now,
+                End = now.AddDays(30),
+                DiscountType = Enums.DiscountType.NoExtraCriteria,
+                TypeSpecificData = "55-tvg-75,66-dvl-6"
+                
+            });
+
+            // act
+            var createResponse = await client.PostAsync("discount", discountToAdd);
+            var createResponseDto = await createResponse.Content.ReadAsStringAsync();
+
+            //assert
+            Assert.Equal(HttpStatusCode.BadRequest, createResponse.StatusCode);
+            Assert.Equal("without extra criteria the typespecific data must be null. but it has a value", createResponseDto);
         }
 
+
+        [Fact]
+        public async Task Test_InvalidDiscountRejected_CannotCreateNegativeMultiplyAmount()
+        {
+            // arrange
+            await _appfixutre.ResetDB();
+            var lotId = await EndToEndSeeding.SeedDatabase(_appfixutre);
+            var client = await EndToEndSeeding.LoginWithAdmin(_appfixutre);
+
+            var now = DateTime.Now;
+
+            var discountToAdd = JsonContent.Create(new WriteDiscountDto()
+            {
+                Title = "Deal Of The Century",
+                Amount = -0.75m,
+                Operator = Enums.Operator.Multiply,
+                ParkingLotIds = [lotId],
+            });
+
+            // act
+            var createResponse = await client.PostAsync("discount", discountToAdd);
+            var createResponseDto = await createResponse.Content.ReadAsStringAsync();
+
+            //assert
+            Assert.Equal(HttpStatusCode.BadRequest, createResponse.StatusCode);
+            Assert.Equal("discount cannot be a factor and have a negative amount, this would result in negative prices", createResponseDto);
+        }
     }
 }

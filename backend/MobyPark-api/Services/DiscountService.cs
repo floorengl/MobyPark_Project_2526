@@ -1,5 +1,6 @@
 ﻿using MobyPark_api.Dtos.Discount;
 using MobyPark_api.Data.Models;
+using MobyPark_api.Enums;
 
 namespace MobyPark_api.Services
 {
@@ -119,6 +120,23 @@ namespace MobyPark_api.Services
                 TypeSpecificData = discount.TypeSpecificData,
             };
             return readDiscountDto;
+        }
+
+        public (bool isLegal, string reason) IsModelLegal(WriteDiscountDto dto)
+        {
+            if (dto == null)
+                return (false, "discount is null");
+
+            else if (dto.End <= dto.Start)
+                return (false, "end cannot be before start");
+
+            else if (dto.Operator == Operator.Multiply && dto.Amount < 0)
+                return (false, "discount cannot be a factor and have a negative amount, this would result in negative prices");
+
+            else if (dto.DiscountType == DiscountType.NoExtraCriteria && dto.TypeSpecificData != null)
+                return (false, "without extra criteria the typespecific data must be null. but it has a value");
+            
+            return (true, "");
         }
 
 
