@@ -1,5 +1,6 @@
 ﻿using Microsoft.Identity.Client;
 using MobyPark_api.Data.Models;
+using MobyPark_api.Data.Repositories;
 using MobyPark_api.Dtos;
 using MobyPark_api.Dtos.Reservation;
 
@@ -15,7 +16,8 @@ namespace MobyPark_api.tests.IntegrationTests
         private (IReservationService, AppDbContext) GetSut()
         {
             var db = _fixture.CreateContext();
-            var serice = new ReservationService(new ReservationRepository(db), new ParkingLotRepository(db));
+            var lotRepo = new ParkingLotRepository(db);
+            var serice = new ReservationService(new ReservationRepository(db), lotRepo, new PricingService(new DiscountRepository(db), lotRepo));
             return (serice, db);
         }
 

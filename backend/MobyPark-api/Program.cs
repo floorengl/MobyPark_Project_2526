@@ -31,6 +31,7 @@ public class Program
         builder.Services.AddScoped<IVehicleService, VehicleService>();
         builder.Services.AddScoped<IPaymentService, PaymentService>();
         builder.Services.AddScoped<IDiscountService, DiscountService>();
+        builder.Services.AddScoped<IPricingService, PricingService>();
         // Repositories
         builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
         builder.Services.AddScoped<ILicenseplateRepository, LicenseplateRepository>();

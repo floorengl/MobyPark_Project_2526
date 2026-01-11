@@ -3,6 +3,7 @@ using MobyPark_api.Dtos.Discount;
 using MobyPark_api.Dtos.Reservation;
 using MobyPark_api.tests.Utils;
 using System.Net;
+using MobyPark_api.Dtos;
 
 namespace MobyPark_api.tests.EndToEndTests
 {
@@ -98,28 +99,129 @@ namespace MobyPark_api.tests.EndToEndTests
         }
 
         [Fact]
-        public async Task Test_DiscountChangesPriceOfSession()
-        {
-
-        }
-
-        [Fact]
         public async Task Test_DiscountChangesPriceOfReservation()
         {
+            await _appfixutre.ResetDB();
+            var lotId = await EndToEndSeeding.SeedDatabase(_appfixutre);
+            var client = await EndToEndSeeding.LoginWithAdmin(_appfixutre);
 
+            var discountToAdd = JsonContent.Create(new WriteDiscountDto()
+            {
+                Title = "GreatDeals.nl",
+                Amount = 0.75m,
+                Operator = Enums.Operator.Multiply,
+            });
+
+            var discountResponse = await client.PostAsync("discount", discountToAdd);
+            Assert.Equal(HttpStatusCode.Created, discountResponse.StatusCode);
+
+
+            var start = DateTime.UtcNow.AddHours(16).AddMinutes(30);
+            var end = DateTime.UtcNow.AddHours(20);
+
+
+            var reservationToAdd = JsonContent.Create(new WriteReservationDto()
+            {
+                LicensePlate = "uvt-54-tt",
+                StartTime = start,
+                EndTime = end, // reservation for 4 hours
+                ParkingLotId = lotId,
+            });
+
+            var reservationResponse = await client.PostAsync("reservations", reservationToAdd);
+            Assert.Equal(HttpStatusCode.OK, reservationResponse.StatusCode);
+
+            var responseDto = await reservationResponse.Content.ReadFromJsonAsync<ReadReservationDto>();
+            Assert.Equal(start, responseDto.StartTime);
+            Assert.Equal(end, responseDto.EndTime);
+            Assert.Equal(15, responseDto.Cost);
+        }
+
+
+        [Fact]
+        public async Task Test_PriceForReservationIsCorrect_PartialOverlap()
+        {
+            await _appfixutre.ResetDB();
+            var lotId = await EndToEndSeeding.SeedDatabase(_appfixutre);
+            var client = await EndToEndSeeding.LoginWithAdmin(_appfixutre);
+
+            var discountToAdd = JsonContent.Create(new WriteDiscountDto()
+            {
+                Title = "GreatDeals.nl",
+                Amount = 0.75m,
+                Operator = Enums.Operator.Multiply,
+                Start = DateTime.UtcNow.AddHours(40),
+                End = DateTime.UtcNow.AddHours(48),
+                ParkingLotIds = [lotId]
+            });
+
+            var discountResponse = await client.PostAsync("discount", discountToAdd);
+            Assert.Equal(HttpStatusCode.Created, discountResponse.StatusCode);
+
+
+            var start = DateTime.UtcNow.AddHours(42); // reservation for 5 hours
+            var end = DateTime.UtcNow.AddHours(52);
+
+
+            var reservationToAdd = JsonContent.Create(new WriteReservationDto()
+            {
+                LicensePlate = "uvt-54-tt",
+                StartTime = start,
+                EndTime = end,
+                ParkingLotId = lotId,
+            });
+
+            var reservationResponse = await client.PostAsync("reservations", reservationToAdd);
+            Assert.Equal(HttpStatusCode.OK, reservationResponse.StatusCode);
+
+            var responseDto = await reservationResponse.Content.ReadFromJsonAsync<ReadReservationDto>();
+            Assert.Equal(start, responseDto.StartTime);
+            Assert.Equal(end, responseDto.EndTime);
+            Assert.Equal(90, responseDto.Cost); // if the cost is 110 no discount has been applied
         }
 
         [Fact]
-        public async Task Test_PriceForSessionIsCorrect_1()
+        public async Task Test_PriceForReservationIsCorrect_DaysLongReservation()
         {
+            await _appfixutre.ResetDB();
+            var lotId = await EndToEndSeeding.SeedDatabase(_appfixutre);
+            var client = await EndToEndSeeding.LoginWithAdmin(_appfixutre);
 
+            //var discountToAdd = JsonContent.Create(new WriteDiscountDto()
+            //{
+            //    Title = "GreatDeals.nl",
+            //    Amount = -10,
+            //    Operator = Enums.Operator.Plus,
+            //    Start = DateTime.UtcNow.AddDays(16),
+            //    End = DateTime.UtcNow.AddDays(22),
+            //    ParkingLotIds = [lotId]
+            //});
+
+            //var discountResponse = await client.PostAsync("discount", discountToAdd);
+            //Assert.Equal(HttpStatusCode.OK, discountResponse.StatusCode);
+
+
+            var start = DateTime.UtcNow.AddHours(20); // reservation for 5 hours
+            var end = DateTime.UtcNow.AddHours(27);
+
+
+            var reservationToAdd = JsonContent.Create(new WriteReservationDto()
+            {
+                LicensePlate = "uvt-54-tt",
+                StartTime = start,
+                EndTime = end,
+                ParkingLotId = lotId,
+            });
+
+            var reservationResponse = await client.PostAsync("reservations", reservationToAdd);
+            Assert.Equal(HttpStatusCode.OK, reservationResponse.StatusCode);
+
+            var responseDto = await reservationResponse.Content.ReadFromJsonAsync<ReadReservationDto>();
+            Assert.Equal(start, responseDto.StartTime);
+            Assert.Equal(end, responseDto.EndTime);
+            Assert.Equal(90, responseDto.Cost); // if the cost is 110 no discount has been applied
         }
-
-        [Fact]
-        public async Task Test_PriceForSessionIsCorrect_2()
-        {
-
-        }
+        
 
         [Fact]
         public async Task Test_InvalidDiscountRejected_EndBeforeStart()

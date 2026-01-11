@@ -59,6 +59,15 @@ namespace MobyPark_api.tests.Utils
             return client;
         }
 
+        /// <summary>
+        /// Creates a parkinglot:
+        /// Name: mobysMegaPark
+        /// Capacity: 1
+        /// Tariff: 10
+        /// DayTariff: 100
+        /// </summary>
+        /// <param name="appFixture"></param>
+        /// <returns></returns>
         internal static async Task<long> SeedDatabase(WholeAppFixture appFixture)
         {
             var db = appFixture.GetDatabaseFixture().CreateContext();

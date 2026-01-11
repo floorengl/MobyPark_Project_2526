@@ -8,9 +8,10 @@ public sealed class ReservationService : IReservationService
 {
     private readonly IReservationRepository _reservations;
     private readonly IParkingLotRepository _parkingLots;
+    private readonly IPricingService _pricingService;
 
-    public ReservationService(IReservationRepository reservations, IParkingLotRepository parkingLots)
-        => (_reservations, _parkingLots) = (reservations, parkingLots);
+    public ReservationService(IReservationRepository reservations, IParkingLotRepository parkingLots, IPricingService pricing)
+        => (_reservations, _parkingLots, _pricingService) = (reservations, parkingLots, pricing);
 
     public async Task<ReadReservationDto[]> GetAll()
     {
@@ -36,9 +37,9 @@ public sealed class ReservationService : IReservationService
             ParkingLotId = dto.ParkingLotId,
             StartTime = dto.StartTime.ToUniversalTime(),
             EndTime = dto.EndTime.ToUniversalTime(),
-            CreatedAt = DateTime.Now.ToUniversalTime(),
+            CreatedAt = DateTime.UtcNow.ToUniversalTime(),
             Status = ReservationStatus.UnUsed,
-            Cost = CalculateReservationCost(dto.StartTime, dto.EndTime, lot)
+            Cost = await CalculateReservationCost(dto.StartTime, dto.EndTime, lot)
         };
 
         await _reservations.AddAsync(reservation);
@@ -61,7 +62,7 @@ public sealed class ReservationService : IReservationService
         reservation.ParkingLotId = dto.ParkingLotId;
         reservation.StartTime = dto.StartTime.ToUniversalTime();
         reservation.EndTime = dto.EndTime.ToUniversalTime();
-        reservation.Cost = CalculateReservationCost(dto.StartTime, dto.EndTime, lot);
+        reservation.Cost = await CalculateReservationCost(dto.StartTime, dto.EndTime, lot);
 
         await _reservations.SaveChangesAsync();
         return ReservationToReadDto(reservation);
@@ -180,14 +181,9 @@ public sealed class ReservationService : IReservationService
         return max;
     }
 
-    public float CalculateReservationCost(DateTime start, DateTime end, ParkingLot lot)
+    public async Task<decimal> CalculateReservationCost(DateTime start, DateTime end, ParkingLot lot)
     {
-        //var total = end - start;
-        //if (total >= TimeSpan.FromDays(1) && lot.DayTariff != null)
-        //    return total.Days * lot.DayTariff.Value;
-
-        //return (int)total.TotalHours * (lot.Tariff ?? 0);
-        return 99999;
+        return await _pricingService.GetPrice(start, end, lot.Id);
     }
 }
 

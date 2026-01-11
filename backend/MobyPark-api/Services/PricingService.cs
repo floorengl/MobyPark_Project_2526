@@ -6,12 +6,24 @@
 /// </summary>
 public class PricingService: IPricingService
 {
+    private readonly IDiscountRepository _discountRepository;
+    private readonly IParkingLotRepository _lotRepository;
 
-    public PricingService() 
+    public PricingService(IDiscountRepository discountRepository, IParkingLotRepository parkingLotRepository) 
     {
-        
+        _discountRepository = discountRepository;
+        _lotRepository = parkingLotRepository;
     }
 
+    /// <summary>
+    /// Helper to calculate price based on predefined information
+    /// This method is seperate to simplefy testing
+    /// </summary>
+    /// <param name="start"></param>
+    /// <param name="end"></param>
+    /// <param name="lot"></param>
+    /// <param name="discounts"></param>
+    /// <returns></returns>
     public static decimal CalculatePrice(DateTime start, DateTime end, ParkingLot lot, Discount[] discounts)
     {
         decimal price = 0;
@@ -42,6 +54,16 @@ public class PricingService: IPricingService
         return price;
     }
 
+    /// <summary>
+    /// Helper to apply discounts
+    /// This method is seperate to simplefy testing
+    /// </summary>
+    /// <param name="price"></param>
+    /// <param name="start"></param>
+    /// <param name="end"></param>
+    /// <param name="lot"></param>
+    /// <param name="discounts"></param>
+    /// <returns></returns>
     public static decimal ApplyDiscount(decimal price, DateTime start, DateTime end, ParkingLot lot, Discount[] discounts)
     {
         var discountsForLot = discounts.Where(d => d.ParkingLotIds == null || d.ParkingLotIds.Contains(lot.Id));
@@ -74,9 +96,31 @@ public class PricingService: IPricingService
         return price;
     }
 
-    public async Task CreatePayment()
+    private async Task<Discount[]> GetRelatedDiscounts(DateTime start, DateTime end, long lotId)
     {
+        return await _discountRepository.GetAllForSessionAtLot(start, end, lotId);
+    }
 
+    public async Task<decimal> GetPrice(DateTime start, DateTime end, long lotId)
+    {
+        var discounts = await GetRelatedDiscounts(start, end, lotId);
+        var lot = await _lotRepository.GetByIdAsync(lotId);
+        if (lot == null) throw new ArgumentException($"lot id is not found in database: {lotId}");
+        decimal price = CalculatePrice(start, end, lot, discounts);
+        return price;
+    }
+
+    public async Task<decimal> GetPrice(Session session)
+    {
+        if (session.Stopped == null) throw new ArgumentException($"Session hasn't been stopped yet but an atempt was made to calculate the price id:{session.Id}");
+        decimal price = await GetPrice(session.Started, session.Stopped.Value, session.ParkingLotId);
+        return price;
+    }
+
+    public async Task<decimal> GetPrice(Reservation reservation)
+    {
+        decimal price = await GetPrice(reservation.StartTime, reservation.EndTime, reservation.ParkingLotId);
+        return price;
     }
 }
 
