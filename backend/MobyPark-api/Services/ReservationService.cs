@@ -36,7 +36,7 @@ public sealed class ReservationService : IReservationService
             ParkingLotId = dto.ParkingLotId,
             StartTime = dto.StartTime.ToUniversalTime(),
             EndTime = dto.EndTime.ToUniversalTime(),
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.Now.ToUniversalTime(),
             Status = ReservationStatus.UnUsed,
             Cost = CalculateReservationCost(dto.StartTime, dto.EndTime, lot)
         };
@@ -59,8 +59,8 @@ public sealed class ReservationService : IReservationService
 
         reservation.LicensePlate = dto.LicensePlate;
         reservation.ParkingLotId = dto.ParkingLotId;
-        reservation.StartTime = dto.StartTime;
-        reservation.EndTime = dto.EndTime;
+        reservation.StartTime = dto.StartTime.ToUniversalTime();
+        reservation.EndTime = dto.EndTime.ToUniversalTime();
         reservation.Cost = CalculateReservationCost(dto.StartTime, dto.EndTime, lot);
 
         await _reservations.SaveChangesAsync();
@@ -110,7 +110,7 @@ public sealed class ReservationService : IReservationService
         if (lot == null)
             return (false, "Parkinglot ID does not exist in the database");
 
-        if (await WillParkingLotOverflow(dto.StartTime, dto.EndTime, dto.ParkingLotId))
+        if (await WillParkingLotOverflow(dto.StartTime.ToUniversalTime(), dto.EndTime.ToUniversalTime(), dto.ParkingLotId))
             return (false, "Parkinglot is full");
 
         return (true, "reservation allowed");

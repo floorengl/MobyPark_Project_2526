@@ -163,12 +163,35 @@ namespace MobyPark_api.tests.EndToEndTests
             var response1 = await client.PostAsync("reservations", reservationrequest1);
             Assert.Equal(HttpStatusCode.OK, response1.StatusCode);
 
-            var response2 = await client.GetAsync($"reservations/For/12-gh-542/{DateTime.Now.AddHours(7).ToString("yyyy-MM-dd hh:mm:ss")}");
+            var response2 = await client.GetAsync($"reservations/For/12-gh-542/{DateTime.UtcNow.AddHours(7).ToString("yyyy-MM-dd'T'HH:mm:ss.fff'Z'")}");
             Assert.Equal(HttpStatusCode.NotFound, response2.StatusCode);
         }
 
         [Fact]
         public async Task Test_HasActiveReservation_Active_Reservation()
+        {
+            await _appfixutre.ResetDB();
+            var lotId = await EndToEndSeeding.SeedDatabase(_appfixutre);
+            var client = await EndToEndSeeding.LoginWithUser1(_appfixutre);
+
+            var reservationrequest1 = JsonContent.Create(new WriteReservationDto()
+            {
+                StartTime = DateTime.UtcNow.AddHours(4),
+                EndTime = DateTime.UtcNow.AddHours(20),
+                LicensePlate = "12-gh-542",
+                ParkingLotId = lotId
+            });
+
+            var response1 = await client.PostAsync("reservations", reservationrequest1);
+            var body = await response1.Content.ReadFromJsonAsync<ReadReservationDto>();
+            Assert.Equal(HttpStatusCode.OK, response1.StatusCode);
+
+            var response2 = await client.GetAsync($"reservations/For/12-gh-542/{DateTime.UtcNow.AddHours(9).ToString("yyyy-MM-dd'T'HH:mm:ss.fff'Z'")}");
+            Assert.Equal(HttpStatusCode.OK, response2.StatusCode);
+        }
+
+        [Fact]
+        public async Task Test_HasActiveReservation_Active_Reservation_OnStart()
         {
             await _appfixutre.ResetDB();
             var lotId = await EndToEndSeeding.SeedDatabase(_appfixutre);
@@ -186,8 +209,88 @@ namespace MobyPark_api.tests.EndToEndTests
             var body = await response1.Content.ReadFromJsonAsync<ReadReservationDto>();
             Assert.Equal(HttpStatusCode.OK, response1.StatusCode);
 
-            var response2 = await client.GetAsync($"reservations/For/12-gh-542/{DateTime.Now.AddHours(9).ToString("yyyy-MM-dd hh:mm:ss")}");
+            var response2 = await client.GetAsync($"reservations/For/12-gh-542/{DateTime.UtcNow.AddHours(8).ToString("yyyy-MM-dd'T'HH:mm:ss.fff'Z'")}");
             Assert.Equal(HttpStatusCode.OK, response2.StatusCode);
+        }
+
+        [Fact]
+        public async Task Test_HasActiveReservation_Active_Reservation_OnEnd()
+        {
+            await _appfixutre.ResetDB();
+            var lotId = await EndToEndSeeding.SeedDatabase(_appfixutre);
+            var client = await EndToEndSeeding.LoginWithUser1(_appfixutre);
+            var now = DateTime.UtcNow;
+            var reservationrequest1 = JsonContent.Create(new WriteReservationDto()
+            {
+                StartTime = now.AddHours(8),
+                EndTime = now.AddHours(10),
+                LicensePlate = "12-gh-542",
+                ParkingLotId = lotId
+            });
+
+            var response1 = await client.PostAsync("reservations", reservationrequest1);
+            var body = await response1.Content.ReadFromJsonAsync<ReadReservationDto>();
+            Assert.Equal(HttpStatusCode.OK, response1.StatusCode);
+
+            var response2 = await client.GetAsync($"reservations/For/12-gh-542/{now.AddHours(10).ToString("yyyy-MM-dd'T'HH:mm:ss.fff'Z'")}");
+            Assert.Equal(HttpStatusCode.OK, response2.StatusCode);
+        }
+
+        [Fact]
+        public async Task Test_HasActiveReservation_Active_Reservation_BeforeEnd()
+        {
+            await _appfixutre.ResetDB();
+            var lotId = await EndToEndSeeding.SeedDatabase(_appfixutre);
+            var client = await EndToEndSeeding.LoginWithUser1(_appfixutre);
+
+            var reservationrequest1 = JsonContent.Create(new WriteReservationDto()
+            {
+                StartTime = DateTime.UtcNow.AddHours(8),
+                EndTime = DateTime.UtcNow.AddHours(10),
+                LicensePlate = "12-gh-542",
+                ParkingLotId = lotId
+            });
+
+            var response1 = await client.PostAsync("reservations", reservationrequest1);
+            var body = await response1.Content.ReadFromJsonAsync<ReadReservationDto>();
+            Assert.Equal(HttpStatusCode.OK, response1.StatusCode);
+
+            var response2 = await client.GetAsync($"reservations/For/12-gh-542/{DateTime.UtcNow.AddHours(9).AddMinutes(59).ToString("yyyy-MM-dd'T'HH:mm:ss.fff'Z'")}");
+            Assert.Equal(HttpStatusCode.OK, response2.StatusCode);
+        }
+
+        [Fact]
+        public async Task Test_HasActiveReservation_Active_Reservation_AfterEnd()
+        {
+            await _appfixutre.ResetDB();
+            var lotId = await EndToEndSeeding.SeedDatabase(_appfixutre);
+            var client = await EndToEndSeeding.LoginWithUser1(_appfixutre);
+
+            var reservationrequest1 = JsonContent.Create(new WriteReservationDto()
+            {
+                StartTime = DateTime.UtcNow.AddHours(8),
+                EndTime = DateTime.UtcNow.AddHours(10),
+                LicensePlate = "12-gh-542",
+                ParkingLotId = lotId
+            });
+
+            var response1 = await client.PostAsync("reservations", reservationrequest1);
+            var body = await response1.Content.ReadFromJsonAsync<ReadReservationDto>();
+            Assert.Equal(HttpStatusCode.OK, response1.StatusCode);
+
+            var response2 = await client.GetAsync($"reservations/For/12-gh-542/{DateTime.UtcNow.AddHours(10).AddMinutes(1).ToString("yyyy-MM-dd'T'HH:mm:ss.fff'Z'")}");
+            Assert.Equal(HttpStatusCode.NotFound, response2.StatusCode);
+        }
+
+        [Fact]
+        public async Task Test_HasActiveReservation_NoReservation()
+        {
+            await _appfixutre.ResetDB();
+            var lotId = await EndToEndSeeding.SeedDatabase(_appfixutre);
+            var client = await EndToEndSeeding.LoginWithUser1(_appfixutre);
+
+            var response2 = await client.GetAsync($"reservations/For/12-gh-542/{DateTime.UtcNow.AddHours(10).ToString("yyyy-MM-dd'T'HH:mm:ss.fff'Z'")}");
+            Assert.Equal(HttpStatusCode.NotFound, response2.StatusCode);
         }
     }
 }
