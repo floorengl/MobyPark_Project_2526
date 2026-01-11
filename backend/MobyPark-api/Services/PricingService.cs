@@ -51,6 +51,8 @@ public class PricingService: IPricingService
         if (price < 0)
             price = 0;
 
+        price = Math.Round(price, 2);
+
         return price;
     }
 
@@ -89,7 +91,7 @@ public class PricingService: IPricingService
             DateTime maxStart = start > (discount.Start ?? DateTime.MinValue) ? start : discount.Start ?? DateTime.MinValue;
             TimeSpan overlap = minEnd - maxStart;
             TimeSpan sessionDuration = end - start;
-            double overlapFactor = overlap / sessionDuration;
+            decimal overlapFactor = (decimal)(overlap / sessionDuration);
             decimal appliedFactor = 1 - (decimal)overlapFactor * discount.Amount;
             price *= appliedFactor;
         }

@@ -220,11 +220,11 @@ public class AppDbContext : DbContext
 
             e.Property(x => x.Tariff)
                 .HasColumnName("tariff")
-                .HasColumnType("real");
+                .HasColumnType("numeric");
 
             e.Property(x => x.DayTariff)
                 .HasColumnName("day_tariff")
-                .HasColumnType("real");
+                .HasColumnType("numeric");
 
             e.Property(x => x.CreatedAt)
                 .HasColumnName("created_at")
@@ -268,7 +268,7 @@ public class AppDbContext : DbContext
 
             e.Property(x => x.Cost)
                 .HasColumnName("cost")
-                .HasColumnType("real");
+                .HasColumnType("numeric");
 
             e.Property(x => x.Status)
                 .HasColumnName("status")
@@ -294,7 +294,7 @@ public class AppDbContext : DbContext
 
             e.Property(x => x.Amount)
                 .HasColumnName("amount")
-                .HasColumnType("real");
+                .HasColumnType("numeric");
 
             e.Property(x => x.Operator)
                 .HasColumnName("operator")

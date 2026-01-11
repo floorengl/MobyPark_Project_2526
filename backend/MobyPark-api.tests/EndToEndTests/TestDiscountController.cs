@@ -108,7 +108,7 @@ namespace MobyPark_api.tests.EndToEndTests
             var discountToAdd = JsonContent.Create(new WriteDiscountDto()
             {
                 Title = "GreatDeals.nl",
-                Amount = 0.75m,
+                Amount = 0.25m,
                 Operator = Enums.Operator.Multiply,
             });
 
@@ -134,7 +134,7 @@ namespace MobyPark_api.tests.EndToEndTests
             var responseDto = await reservationResponse.Content.ReadFromJsonAsync<ReadReservationDto>();
             Assert.Equal(start, responseDto.StartTime);
             Assert.Equal(end, responseDto.EndTime);
-            Assert.Equal(15, responseDto.Cost);
+            Assert.Equal(30, responseDto.Cost);
         }
 
 
@@ -144,14 +144,15 @@ namespace MobyPark_api.tests.EndToEndTests
             await _appfixutre.ResetDB();
             var lotId = await EndToEndSeeding.SeedDatabase(_appfixutre);
             var client = await EndToEndSeeding.LoginWithAdmin(_appfixutre);
+            var now = DateTime.UtcNow;
 
             var discountToAdd = JsonContent.Create(new WriteDiscountDto()
             {
                 Title = "GreatDeals.nl",
-                Amount = 0.75m,
+                Amount = 0.25m,
                 Operator = Enums.Operator.Multiply,
-                Start = DateTime.UtcNow.AddHours(40),
-                End = DateTime.UtcNow.AddHours(48),
+                Start = now.AddHours(40),
+                End = now.AddHours(48),
                 ParkingLotIds = [lotId]
             });
 
@@ -159,8 +160,8 @@ namespace MobyPark_api.tests.EndToEndTests
             Assert.Equal(HttpStatusCode.Created, discountResponse.StatusCode);
 
 
-            var start = DateTime.UtcNow.AddHours(42); // reservation for 5 hours
-            var end = DateTime.UtcNow.AddHours(52);
+            var start = now.AddHours(42); // reservation for 11 hours
+            var end = now.AddHours(52);
 
 
             var reservationToAdd = JsonContent.Create(new WriteReservationDto()
@@ -177,9 +178,9 @@ namespace MobyPark_api.tests.EndToEndTests
             var responseDto = await reservationResponse.Content.ReadFromJsonAsync<ReadReservationDto>();
             Assert.Equal(start, responseDto.StartTime);
             Assert.Equal(end, responseDto.EndTime);
-            Assert.Equal(90, responseDto.Cost); // if the cost is 110 no discount has been applied
+            Assert.Equal(93.50m, responseDto.Cost); // if the cost is 110 no discount has been applied
         }
-
+       
         [Fact]
         public async Task Test_PriceForReservationIsCorrect_DaysLongReservation()
         {
@@ -187,22 +188,22 @@ namespace MobyPark_api.tests.EndToEndTests
             var lotId = await EndToEndSeeding.SeedDatabase(_appfixutre);
             var client = await EndToEndSeeding.LoginWithAdmin(_appfixutre);
 
-            //var discountToAdd = JsonContent.Create(new WriteDiscountDto()
-            //{
-            //    Title = "GreatDeals.nl",
-            //    Amount = -10,
-            //    Operator = Enums.Operator.Plus,
-            //    Start = DateTime.UtcNow.AddDays(16),
-            //    End = DateTime.UtcNow.AddDays(22),
-            //    ParkingLotIds = [lotId]
-            //});
+            var discountToAdd = JsonContent.Create(new WriteDiscountDto()
+            {
+                Title = "GreatDeals.nl",
+                Amount = -10,
+                Operator = Enums.Operator.Plus,
+                Start = DateTime.UtcNow.AddDays(16),
+                End = DateTime.UtcNow.AddDays(22),
+                ParkingLotIds = [lotId]
+            });
 
-            //var discountResponse = await client.PostAsync("discount", discountToAdd);
-            //Assert.Equal(HttpStatusCode.OK, discountResponse.StatusCode);
+            var discountResponse = await client.PostAsync("discount", discountToAdd);
+            Assert.Equal(HttpStatusCode.Created, discountResponse.StatusCode);
 
 
-            var start = DateTime.UtcNow.AddHours(20); // reservation for 5 hours
-            var end = DateTime.UtcNow.AddHours(27);
+            var start = DateTime.UtcNow.AddDays(20); // reservation for 5 hours
+            var end = DateTime.UtcNow.AddDays(27);
 
 
             var reservationToAdd = JsonContent.Create(new WriteReservationDto()
@@ -219,7 +220,7 @@ namespace MobyPark_api.tests.EndToEndTests
             var responseDto = await reservationResponse.Content.ReadFromJsonAsync<ReadReservationDto>();
             Assert.Equal(start, responseDto.StartTime);
             Assert.Equal(end, responseDto.EndTime);
-            Assert.Equal(90, responseDto.Cost); // if the cost is 110 no discount has been applied
+            Assert.Equal(790, responseDto.Cost); 
         }
         
 
