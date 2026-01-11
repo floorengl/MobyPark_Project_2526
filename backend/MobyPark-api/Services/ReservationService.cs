@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Hosting;
 using MobyPark_api.Data.Models;
 using MobyPark_api.Dtos.Reservation;
+using MobyPark_api.Enums;
 
 
 public sealed class ReservationService : IReservationService
@@ -9,9 +10,11 @@ public sealed class ReservationService : IReservationService
     private readonly IReservationRepository _reservations;
     private readonly IParkingLotRepository _parkingLots;
     private readonly IPricingService _pricingService;
+    private readonly IPaymentService _payments;
 
-    public ReservationService(IReservationRepository reservations, IParkingLotRepository parkingLots, IPricingService pricing)
-        => (_reservations, _parkingLots, _pricingService) = (reservations, parkingLots, pricing);
+    public ReservationService(IReservationRepository reservations, IParkingLotRepository parkingLots, IPricingService pricing, IPaymentService payments)
+        => (_reservations, _parkingLots, _pricingService) = (reservations, parkingLots, pricing, payments);
+
 
     public async Task<ReadReservationDto[]> GetAll()
     {
@@ -24,6 +27,29 @@ public sealed class ReservationService : IReservationService
         var id = Guid.Parse(guid);
         var entity = await _reservations.GetByIdNoTrackingAsync(id);
         return ReservationToReadDto(entity);
+    }
+
+    public async Task<List<ReadReservationDto>?> Post(WriteMultiReservationDto dto)
+    {
+        List<ReadReservationDto> results = new();
+
+        // Reuse existing single-reservation post per vehicle
+        foreach (var plate in dto.LicensePlates)
+        {
+            var singleDto = new WriteReservationDto
+            {
+                LicensePlate = plate,
+                ParkingLotId = dto.ParkingLotId,
+                StartTime = dto.StartTime,
+                EndTime = dto.EndTime
+            };
+
+            var postedReservation = await Post(singleDto);
+            if (postedReservation != null)
+                results.Add(postedReservation);
+        }
+
+        return results;
     }
 
     public async Task<ReadReservationDto?> Post(WriteReservationDto dto)
@@ -45,6 +71,23 @@ public sealed class ReservationService : IReservationService
         await _reservations.AddAsync(reservation);
         await _reservations.SaveChangesAsync();
 
+        var payment = new AddPaymentDto
+        {
+            Amount = (decimal)reservation.Cost,
+            CreatedAt = DateTime.UtcNow,
+            Status = PaymentStatus.Complete,
+            Hash = null,
+            Transaction = new TransactionDataDto
+            {
+                Amount = (decimal)reservation.Cost,
+                Date = DateTime.UtcNow,
+                Method = "ideal",
+                Issuer = "XYY910HH",
+                Bank = "ABN-NL"
+            }
+        };
+
+        await _payments.AddPaymentAsync(payment);
         return ReservationToReadDto(reservation);
     }
 
@@ -92,6 +135,45 @@ public sealed class ReservationService : IReservationService
             CreatedAt = reservation.CreatedAt,
             Cost = reservation.Cost
         };
+    }
+
+    public async Task<(bool, string)> IsReservationAllowed(WriteMultiReservationDto dto)
+    {
+        if (dto.LicensePlates == null || dto.LicensePlates.Length == 0)
+            return (false, "At least one vehicle is required");
+
+        // Validate parking lot once
+        var lot = await _parkingLots.GetByIdAsync(dto.ParkingLotId);
+        if (lot == null)
+            return (false, "Parkinglot ID does not exist in the database");
+
+        // Capacity check INCLUDING number of vehicles
+        if (await WillParkingLotOverflow(
+                dto.StartTime,
+                dto.EndTime,
+                dto.ParkingLotId,
+                baseLoad: dto.LicensePlates.Length - 1))
+        {
+            return (false, "Parkinglot does not have enough capacity for all vehicles");
+        }
+
+        // Reuse existing single-reservation validation per vehicle
+        foreach (var plate in dto.LicensePlates)
+        {
+            var singleDto = new WriteReservationDto
+            {
+                LicensePlate = plate,
+                ParkingLotId = dto.ParkingLotId,
+                StartTime = dto.StartTime,
+                EndTime = dto.EndTime
+            };
+
+            var result = await IsReservationAllowed(singleDto);
+            if (!result.Item1)
+                return result;
+        }
+
+        return (true, "multi reservation allowed");
     }
 
     public async Task<(bool, string)> IsReservationAllowed(WriteReservationDto dto)
