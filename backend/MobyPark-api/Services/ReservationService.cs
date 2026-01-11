@@ -13,7 +13,7 @@ public sealed class ReservationService : IReservationService
     private readonly IPaymentService _payments;
 
     public ReservationService(IReservationRepository reservations, IParkingLotRepository parkingLots, IPricingService pricing, IPaymentService payments)
-        => (_reservations, _parkingLots, _pricingService) = (reservations, parkingLots, pricing, payments);
+        => (_reservations, _parkingLots, _pricingService, _payments) = (reservations, parkingLots, pricing, payments);
 
 
     public async Task<ReadReservationDto[]> GetAll()

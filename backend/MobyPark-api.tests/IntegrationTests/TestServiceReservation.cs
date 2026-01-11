@@ -17,7 +17,7 @@ namespace MobyPark_api.tests.IntegrationTests
         {
             var db = _fixture.CreateContext();
             var lotRepo = new ParkingLotRepository(db);
-            var serice = new ReservationService(new ReservationRepository(db), lotRepo, new PricingService(new DiscountRepository(db), lotRepo));
+            var serice = new ReservationService(new ReservationRepository(db), lotRepo, new PricingService(new DiscountRepository(db), lotRepo), new PaymentService(new PaymentRepository(db)));
             return (serice, db);
         }
 
