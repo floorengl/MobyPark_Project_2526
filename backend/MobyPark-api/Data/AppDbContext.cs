@@ -193,7 +193,7 @@ public class AppDbContext : DbContext
         // Parkinglots.
         b.Entity<ParkingLot>(e =>
         {
-            e.ToTable("ParkingLots");
+            e.ToTable("parking_lots");
             e.HasKey(x => x.Id);
 
             e.Property(x => x.Id)
@@ -237,7 +237,7 @@ public class AppDbContext : DbContext
         // Reservations.
         b.Entity<Reservation>(e =>
         {
-            e.ToTable("Reservations");
+            e.ToTable("reservations");
             e.HasKey(x => x.Id);
 
             e.Property(x => x.Id)
