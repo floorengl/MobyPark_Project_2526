@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MobyPark_api.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialSchema : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -29,23 +29,23 @@ namespace MobyPark_api.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ParkingLots",
+                name: "parking_lots",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
+                    id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    Location = table.Column<string>(type: "text", nullable: false),
-                    Address = table.Column<string>(type: "text", nullable: false),
-                    Capacity = table.Column<long>(type: "bigint", nullable: false),
-                    Tariff = table.Column<float>(type: "real", nullable: true),
-                    DayTariff = table.Column<float>(type: "real", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Coordinates = table.Column<string>(type: "text", nullable: false)
+                    name = table.Column<string>(type: "text", nullable: false),
+                    location = table.Column<string>(type: "text", nullable: false),
+                    address = table.Column<string>(type: "text", nullable: true),
+                    capacity = table.Column<long>(type: "bigint", nullable: false),
+                    tariff = table.Column<float>(type: "real", nullable: true),
+                    day_tariff = table.Column<float>(type: "real", nullable: true),
+                    created_at = table.Column<DateTime>(type: "timestamptz", nullable: false),
+                    coordinates = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ParkingLots", x => x.Id);
+                    table.PrimaryKey("PK_parking_lots", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -111,27 +111,27 @@ namespace MobyPark_api.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Reservations",
+                name: "reservations",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "uuid_generate_v4()"),
-                    ParkingLotId = table.Column<long>(type: "bigint", nullable: false),
-                    LicensePlate = table.Column<string>(type: "text", nullable: false),
-                    StartTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    EndTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Cost = table.Column<float>(type: "real", nullable: true),
-                    Status = table.Column<int>(type: "integer", nullable: false)
+                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "uuid_generate_v4()"),
+                    parking_lot_id = table.Column<long>(type: "bigint", nullable: false),
+                    license_plate = table.Column<string>(type: "text", nullable: false),
+                    start_time = table.Column<DateTime>(type: "timestamptz", nullable: false),
+                    end_time = table.Column<DateTime>(type: "timestamptz", nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamptz", nullable: false),
+                    cost = table.Column<float>(type: "real", nullable: true),
+                    status = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Reservations", x => x.Id);
+                    table.PrimaryKey("PK_reservations", x => x.id);
                     table.ForeignKey(
-                        name: "FK_Reservations_ParkingLots_ParkingLotId",
-                        column: x => x.ParkingLotId,
-                        principalTable: "ParkingLots",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        name: "FK_reservations_parking_lots_parking_lot_id",
+                        column: x => x.parking_lot_id,
+                        principalTable: "parking_lots",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -194,9 +194,9 @@ namespace MobyPark_api.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Reservations_ParkingLotId",
-                table: "Reservations",
-                column: "ParkingLotId");
+                name: "IX_reservations_parking_lot_id",
+                table: "reservations",
+                column: "parking_lot_id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_sessions_LicensePlateId",
@@ -227,7 +227,7 @@ namespace MobyPark_api.Migrations
                 name: "payments");
 
             migrationBuilder.DropTable(
-                name: "Reservations");
+                name: "reservations");
 
             migrationBuilder.DropTable(
                 name: "sessions");
@@ -239,7 +239,7 @@ namespace MobyPark_api.Migrations
                 name: "transaction_data");
 
             migrationBuilder.DropTable(
-                name: "ParkingLots");
+                name: "parking_lots");
 
             migrationBuilder.DropTable(
                 name: "licenseplates");

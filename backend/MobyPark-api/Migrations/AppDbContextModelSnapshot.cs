@@ -90,7 +90,7 @@ namespace MobyPark_api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ParkingLots", (string)null);
+                    b.ToTable("parking_lots", (string)null);
                 });
 
             modelBuilder.Entity("MobyPark_api.Data.Models.Reservation", b =>
@@ -134,7 +134,7 @@ namespace MobyPark_api.Migrations
 
                     b.HasIndex("ParkingLotId");
 
-                    b.ToTable("Reservations", (string)null);
+                    b.ToTable("reservations", (string)null);
                 });
 
             modelBuilder.Entity("MobyPark_api.Data.Models.Vehicle", b =>
