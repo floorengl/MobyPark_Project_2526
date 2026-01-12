@@ -65,7 +65,7 @@ public sealed class ReservationService : IReservationService
             EndTime = dto.EndTime.ToUniversalTime(),
             CreatedAt = DateTime.UtcNow.ToUniversalTime(),
             Status = ReservationStatus.UnUsed,
-            Cost = await CalculateReservationCost(dto.StartTime, dto.EndTime, lot)
+            Cost = await CalculateReservationCost(dto.StartTime, dto.EndTime, lot, dto.LicensePlate)
         };
 
         await _reservations.AddAsync(reservation);
@@ -105,7 +105,7 @@ public sealed class ReservationService : IReservationService
         reservation.ParkingLotId = dto.ParkingLotId;
         reservation.StartTime = dto.StartTime.ToUniversalTime();
         reservation.EndTime = dto.EndTime.ToUniversalTime();
-        reservation.Cost = await CalculateReservationCost(dto.StartTime, dto.EndTime, lot);
+        reservation.Cost = await CalculateReservationCost(dto.StartTime, dto.EndTime, lot, dto.LicensePlate);
 
         await _reservations.SaveChangesAsync();
         return ReservationToReadDto(reservation);
@@ -263,9 +263,9 @@ public sealed class ReservationService : IReservationService
         return max;
     }
 
-    public async Task<decimal> CalculateReservationCost(DateTime start, DateTime end, ParkingLot lot)
+    public async Task<decimal> CalculateReservationCost(DateTime start, DateTime end, ParkingLot lot, string licensePlate)
     {
-        return await _pricingService.GetPrice(start, end, lot.Id);
+        return await _pricingService.GetPrice(start, end, lot.Id, licensePlate);
     }
 }
 

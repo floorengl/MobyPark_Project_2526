@@ -53,7 +53,7 @@ namespace MobyPark_api.tests.UnitTests
 
 
             // act
-            decimal price = PricingService.CalculatePrice(start, end, lot, []);
+            decimal price = PricingService.CalculatePrice(start, end, "tv-342-sx", lot, []);
 
             // assert
             Assert.Equal(11, price);
@@ -69,7 +69,7 @@ namespace MobyPark_api.tests.UnitTests
             
             
             // act
-            decimal price = PricingService.CalculatePrice(start, end, lot, []);
+            decimal price = PricingService.CalculatePrice(start, end, "tv-342-sx", lot, []);
 
             // assert
             Assert.Equal(24, price);
@@ -85,7 +85,7 @@ namespace MobyPark_api.tests.UnitTests
 
 
             // act
-            decimal price = PricingService.CalculatePrice(start, end, lot, []);
+            decimal price = PricingService.CalculatePrice(start, end, "tv-342-sx", lot, []);
 
             // assert
             Assert.Equal(24, price);
@@ -101,7 +101,7 @@ namespace MobyPark_api.tests.UnitTests
 
 
             // act
-            decimal price = PricingService.CalculatePrice(start, end, lot, []);
+            decimal price = PricingService.CalculatePrice(start, end, "tv-342-sx", lot, []);
 
             // assert
             Assert.Equal(20, price);
@@ -117,7 +117,7 @@ namespace MobyPark_api.tests.UnitTests
 
 
             // act
-            decimal price = PricingService.CalculatePrice(start, end, lot, []);
+            decimal price = PricingService.CalculatePrice(start, end, "tv-342-sx", lot, []);
 
             // assert
             Assert.Equal(0, price);
@@ -133,7 +133,7 @@ namespace MobyPark_api.tests.UnitTests
 
 
             // act
-            decimal price = PricingService.CalculatePrice(start, end, lot, []);
+            decimal price = PricingService.CalculatePrice(start, end, "tv-342-sx", lot, []);
 
             // assert
             Assert.Equal(1, price);
@@ -149,7 +149,7 @@ namespace MobyPark_api.tests.UnitTests
 
 
             // act
-            decimal price = PricingService.CalculatePrice(start, end, lot, []);
+            decimal price = PricingService.CalculatePrice(start, end, "tv-342-sx", lot, []);
 
             // assert
             Assert.Equal(0, price);
@@ -165,7 +165,7 @@ namespace MobyPark_api.tests.UnitTests
 
 
             // act
-            decimal price = PricingService.CalculatePrice(start, end, lot, []);
+            decimal price = PricingService.CalculatePrice(start, end, "tv-342-sx", lot, []);
 
             // assert
             Assert.Equal(40, price);
@@ -181,7 +181,7 @@ namespace MobyPark_api.tests.UnitTests
 
 
             // act
-            decimal price = PricingService.CalculatePrice(start, end, lot, []);
+            decimal price = PricingService.CalculatePrice(start, end, "tv-342-sx", lot, []);
 
             // assert
             Assert.Equal(2010, price);
@@ -206,7 +206,7 @@ namespace MobyPark_api.tests.UnitTests
             };
 
             // act
-            decimal price = PricingService.CalculatePrice(start, end, lot, [discount]);
+            decimal price = PricingService.CalculatePrice(start, end, "tv-342-sx", lot, [discount]);
 
             // assert
             Assert.Equal(5, price);
@@ -228,7 +228,7 @@ namespace MobyPark_api.tests.UnitTests
             };
 
             // act
-            decimal price = PricingService.CalculatePrice(start, end, lot, [discount]);
+            decimal price = PricingService.CalculatePrice(start, end, "tv-342-sx", lot, [discount]);
 
             // assert
             Assert.Equal(0, price);
@@ -253,7 +253,7 @@ namespace MobyPark_api.tests.UnitTests
             };
 
             // act
-            decimal price = PricingService.CalculatePrice(start, end, lot, [discount]);
+            decimal price = PricingService.CalculatePrice(start, end, "tv-342-sx", lot, [discount]);
 
             // assert
             Assert.Equal(7.5m, price);
@@ -278,7 +278,7 @@ namespace MobyPark_api.tests.UnitTests
             };
 
             // act
-            decimal price = PricingService.CalculatePrice(start, end, lot, [discount]);
+            decimal price = PricingService.CalculatePrice(start, end, "tv-342-sx", lot, [discount]);
 
             // assert
             Assert.Equal(5m, price);
@@ -303,7 +303,7 @@ namespace MobyPark_api.tests.UnitTests
             };
 
             // act
-            decimal price = PricingService.CalculatePrice(start, end, lot, [discount]);
+            decimal price = PricingService.CalculatePrice(start, end, "tv-342-sx", lot, [discount]);
 
             // assert
             Assert.Equal(7.75m, price);
@@ -351,7 +351,7 @@ namespace MobyPark_api.tests.UnitTests
             };
 
             // act
-            decimal price = PricingService.CalculatePrice(start, end, lot, [discount1, discount2, discount3, discount4]);
+            decimal price = PricingService.CalculatePrice(start, end, "tv-342-sx", lot, [discount1, discount2, discount3, discount4]);
 
             // assert
             Assert.Equal(3m, price);
@@ -384,8 +384,8 @@ namespace MobyPark_api.tests.UnitTests
                 };
 
                 // act
-                decimal price1 = PricingService.CalculatePrice(start, end, lot1, [discount1, discount2]);
-                decimal price2 = PricingService.CalculatePrice(start, end, lot2, [discount1, discount2]);
+                decimal price1 = PricingService.CalculatePrice(start, end, "tv-342-sx", lot1, [discount1, discount2]);
+                decimal price2 = PricingService.CalculatePrice(start, end, "tv-342-sx", lot2, [discount1, discount2]);
 
                 // assert
                 Assert.Equal(5m, price1);
@@ -393,12 +393,68 @@ namespace MobyPark_api.tests.UnitTests
             }
         }
 
+        [Fact]
+        public void Test_CalculatePrice_DiscountForLicenseplate()
+        {
+            // arrange
+            DateTime start = new DateTime(20, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            DateTime end = new DateTime(20, 1, 1, 9, 0, 0, DateTimeKind.Utc);
+            ParkingLot lot = MakeLot();
+
+            Discount discount = new()
+            {
+                DiscountType = DiscountType.ByLicenseplate,
+                Start = new DateTime(19, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                End = new DateTime(20, 1, 1, 4, 30, 0, DateTimeKind.Utc),
+                Amount = 0.5m,
+                Operator = Operator.Multiply,
+                ParkingLotIds = [lot.Id],
+                TypeSpecificData = "tv-342-sx,66-xwz-54"
+            };
+
+            // act
+            decimal price = PricingService.CalculatePrice(start, end, "tv-342-sx", lot, [discount]);
+
+            // assert
+            Assert.Equal(7.5m, price);
+        }
 
 
+        [Fact]
+        public void Test_CalculatePrice_DiscountForLicenseplate_DoesNotApply()
+        {
+            // arrange
+            DateTime start = new DateTime(20, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            DateTime end = new DateTime(20, 1, 1, 9, 0, 0, DateTimeKind.Utc);
+            ParkingLot lot = MakeLot();
 
+            Discount discount1 = new()
+            {
+                DiscountType = DiscountType.ByLicenseplate,
+                Amount = 0.5m,
+                Operator = Operator.Multiply,
+                ParkingLotIds = [lot.Id],
+                TypeSpecificData = "tv-342-sx,66-xwz-54"
+            };
 
+            Discount discount2 = new()
+            {
+                DiscountType = DiscountType.NoExtraCriteria,
+                Amount = -2.5m,
+                Operator = Operator.Plus,
+                ParkingLotIds = [lot.Id],
+            };
 
+            // act
+            decimal price = PricingService.CalculatePrice(start, end, "tv-345-sx", lot, [discount1, discount2]);
+
+            // assert
+            Assert.Equal(7.5m, price);
+        }
 
 
     }
+
+
+
 }

@@ -1,5 +1,5 @@
 ﻿using MobyPark_api.Data.Models;
-
+using MobyPark_api.Enums;
 
 /// <summary>
 /// Service to calculate prices. Used to apply discounts. Used by reservations and sessions.
@@ -24,7 +24,7 @@ public class PricingService: IPricingService
     /// <param name="lot"></param>
     /// <param name="discounts"></param>
     /// <returns></returns>
-    public static decimal CalculatePrice(DateTime start, DateTime end, ParkingLot lot, Discount[] discounts)
+    public static decimal CalculatePrice(DateTime start, DateTime end, string licenseplate, ParkingLot lot, Discount[] discounts)
     {
         decimal price = 0;
         TimeSpan differance = end - start;
@@ -46,7 +46,7 @@ public class PricingService: IPricingService
         {
             price = dayTariff * (hours / 24 + 1);
         }
-        price = ApplyDiscount(price, start, end, lot, discounts);
+        price = ApplyDiscount(price, start, end, lot, discounts, licenseplate);
 
         if (price < 0)
             price = 0;
@@ -66,7 +66,7 @@ public class PricingService: IPricingService
     /// <param name="lot"></param>
     /// <param name="discounts"></param>
     /// <returns></returns>
-    public static decimal ApplyDiscount(decimal price, DateTime start, DateTime end, ParkingLot lot, Discount[] discounts)
+    public static decimal ApplyDiscount(decimal price, DateTime start, DateTime end, ParkingLot lot, Discount[] discounts, string licenseplate)
     {
         var discountsForLot = discounts.Where(d => d.ParkingLotIds == null || d.ParkingLotIds.Contains(lot.Id));
         // spread discounts
@@ -75,14 +75,21 @@ public class PricingService: IPricingService
 
         foreach (Discount discount in PlusDiscounts)
         {
-            if (start < (discount.End ?? DateTime.MaxValue) && (discount.Start ?? DateTime.MinValue) < end) // if overlaping
+            if (start < (discount.End ?? DateTime.MaxValue) && 
+                (discount.Start ?? DateTime.MinValue) < end &&  // if overlaping
+                DoExtraCriteriaApply(licenseplate, discount)
+                )
             {
                 price += discount.Amount;
             }
         }
         foreach (Discount discount in MultDiscounts)
         {
-            if (!(start < (discount.End ?? DateTime.MaxValue) && (discount.Start ?? DateTime.MinValue) < end)) // if overlaping
+            if (!(
+                start < (discount.End ?? DateTime.MaxValue) && 
+                (discount.Start ?? DateTime.MinValue) < end &&  // if overlaping
+                DoExtraCriteriaApply(licenseplate, discount)
+                )) 
             {
                 continue;
             }
@@ -98,30 +105,50 @@ public class PricingService: IPricingService
         return price;
     }
 
+    private static bool DoExtraCriteriaApply(string licensePlate, Discount discount)
+    {
+        switch (discount.DiscountType)
+        {
+            case DiscountType.NoExtraCriteria:
+                return true;
+            case DiscountType.ByLicenseplate:
+                return DoesCriteriaLicenseplateApply(licensePlate, discount);
+            default:  // this should never be hit. It means a discount type is not defined.
+                return true;
+        }
+    }
+
+    private static bool DoesCriteriaLicenseplateApply(string licensePlate, Discount discount)
+    {
+        string[] appliedFor = discount.TypeSpecificData.Split(',');
+        return appliedFor.Contains(licensePlate);
+    }
+
     private async Task<Discount[]> GetRelatedDiscounts(DateTime start, DateTime end, long lotId)
     {
         return await _discountRepository.GetAllForSessionAtLot(start, end, lotId);
     }
 
-    public async Task<decimal> GetPrice(DateTime start, DateTime end, long lotId)
+    public async Task<decimal> GetPrice(DateTime start, DateTime end, long lotId, string licenseplate)
     {
         var discounts = await GetRelatedDiscounts(start, end, lotId);
         var lot = await _lotRepository.GetByIdAsync(lotId);
         if (lot == null) throw new ArgumentException($"lot id is not found in database: {lotId}");
-        decimal price = CalculatePrice(start, end, lot, discounts);
+        decimal price = CalculatePrice(start, end, licenseplate, lot, discounts);
         return price;
     }
 
     public async Task<decimal> GetPrice(Session session)
     {
         if (session.Stopped == null) throw new ArgumentException($"Session hasn't been stopped yet but an atempt was made to calculate the price id:{session.Id}");
-        decimal price = await GetPrice(session.Started, session.Stopped.Value, session.ParkingLotId);
+        if (string.IsNullOrEmpty(session.PlateText)) throw new ArgumentException($"Session licenseplate is null or an empty string. the price cannot be calculated without knowing it id:{session.Id}");
+        decimal price = await GetPrice(session.Started, session.Stopped.Value, session.ParkingLotId, session.PlateText);
         return price;
     }
 
     public async Task<decimal> GetPrice(Reservation reservation)
     {
-        decimal price = await GetPrice(reservation.StartTime, reservation.EndTime, reservation.ParkingLotId);
+        decimal price = await GetPrice(reservation.StartTime, reservation.EndTime, reservation.ParkingLotId, reservation.LicensePlate);
         return price;
     }
 }
