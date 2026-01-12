@@ -26,6 +26,11 @@ public class WholeAppFixture : WebApplicationFactory<Program>, IAsyncLifetime
         await _databaseFixture.DisposeAsync();
     }
 
+    public DatabaseFixture GetDatabaseFixture()
+    {
+        return _databaseFixture;
+    }
+
     public async Task ResetDB()
     {
         await _databaseFixture.ResetDB();

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -10,9 +11,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MobyPark_api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260111170235_initialCreate")]
+    partial class initialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -54,8 +57,8 @@ namespace MobyPark_api.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("numeric")
+                    b.Property<float>("Amount")
+                        .HasColumnType("real")
                         .HasColumnName("amount");
 
                     b.Property<int>("DiscountType")
@@ -142,8 +145,8 @@ namespace MobyPark_api.Migrations
                         .HasColumnType("timestamptz")
                         .HasColumnName("created_at");
 
-                    b.Property<decimal?>("DayTariff")
-                        .HasColumnType("numeric")
+                    b.Property<float?>("DayTariff")
+                        .HasColumnType("real")
                         .HasColumnName("day_tariff");
 
                     b.Property<long?>("DiscountId")
@@ -159,8 +162,8 @@ namespace MobyPark_api.Migrations
                         .HasColumnType("text")
                         .HasColumnName("name");
 
-                    b.Property<decimal?>("Tariff")
-                        .HasColumnType("numeric")
+                    b.Property<float?>("Tariff")
+                        .HasColumnType("real")
                         .HasColumnName("tariff");
 
                     b.HasKey("Id");
@@ -178,8 +181,8 @@ namespace MobyPark_api.Migrations
                         .HasColumnName("id")
                         .HasDefaultValueSql("uuid_generate_v4()");
 
-                    b.Property<decimal?>("Cost")
-                        .HasColumnType("numeric")
+                    b.Property<float?>("Cost")
+                        .HasColumnType("real")
                         .HasColumnName("cost");
 
                     b.Property<DateTime>("CreatedAt")
@@ -211,7 +214,7 @@ namespace MobyPark_api.Migrations
 
                     b.HasIndex("ParkingLotId");
 
-                    b.ToTable("reservations", (string)null);
+                    b.ToTable("Reservations", (string)null);
                 });
 
             modelBuilder.Entity("MobyPark_api.Data.Models.Vehicle", b =>

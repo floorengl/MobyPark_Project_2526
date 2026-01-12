@@ -10,6 +10,6 @@ namespace MobyPark_api.Dtos.Reservation
         public DateTime StartTime { get; init; }
         public DateTime EndTime { get; init; }
         public DateTime CreatedAt { get; init; }
-        public float? Cost { get; init; }
+        public decimal? Cost { get; init; }
     }
 }

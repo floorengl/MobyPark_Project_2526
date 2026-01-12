@@ -89,10 +89,10 @@ namespace MobyPark_api.Controllers
                 return Ok(dto);
         }
 
-        [HttpGet("For{plate}/{time}")]
-        public async Task<IActionResult> HasActiveReservation([FromRoute] string licensePlate, [FromRoute] DateTime time)
+        [HttpGet("For/{plate}/{time}")]
+        public async Task<IActionResult> HasActiveReservation([FromRoute] string plate, [FromRoute] DateTime time)
         {
-            ReadReservationDto? dto = await _reser.GetActiveReservation(licensePlate, time);
+            ReadReservationDto? dto = await _reser.GetActiveReservation(plate, time);
             if (dto == null)
                 return NotFound();
             else
