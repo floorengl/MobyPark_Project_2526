@@ -45,8 +45,9 @@ public static class ParkingLotImporter
             var address = o.TryGetProperty("address", out var a) ? a.ToString() : null;
             var capacity = (o.TryGetProperty("capacity", out var c) && c.TryGetInt64(out var cap)) ? cap : 0;
 
-            var tariff = ReadFloat(o, "tariff");
-            var dayTariff = ReadFloat(o, "day_tariff", "daytariff"); // supports both keys
+            var tariff = ReadDecimal(o, "tariff");
+            var dayTariff = ReadDecimal(o, "day_tariff", "daytariff");
+
             var coordinates = ReadCoordinates(o); // converting {lat,lng} to "lat,lng"
 
             var lot = db.ParkingLots.FirstOrDefault(p => p.Id == id);
@@ -86,23 +87,32 @@ public static class ParkingLotImporter
         Console.WriteLine($"ParkingLots → inserted={inserted}, updated={updated}, skipped={skipped}");
     }
 
-    private static float? ReadFloat(JsonElement o, params string[] keys)
+    private static decimal? ReadDecimal(JsonElement o, params string[] keys)
     {
         foreach (var key in keys)
         {
             if (!o.TryGetProperty(key, out var v)) continue;
 
-            // number: 1.9 or 11
-            if (v.ValueKind == JsonValueKind.Number && v.TryGetDouble(out var d))
-                return (float)d;
+            // JSON number (1.9, 11, etc.)
+            if (v.ValueKind == JsonValueKind.Number)
+            {
+                if (v.TryGetDecimal(out var dec))
+                    return dec;
 
-            // string: "1.9"
+                // fallback
+                if (v.TryGetDouble(out var d))
+                    return (decimal)d;
+            }
+
+            // JSON string ("1.9")
             if (v.ValueKind == JsonValueKind.String &&
-                float.TryParse(v.GetString(), NumberStyles.Float, CultureInfo.InvariantCulture, out var f))
-                return f;
+                decimal.TryParse(v.GetString(), NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed))
+                return parsed;
         }
+
         return null;
     }
+
 
     private static string? ReadCoordinates(JsonElement o)
     {

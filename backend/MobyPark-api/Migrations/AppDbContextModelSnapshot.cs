@@ -167,7 +167,7 @@ namespace MobyPark_api.Migrations
 
                     b.HasIndex("DiscountId");
 
-                    b.ToTable("ParkingLots", (string)null);
+                    b.ToTable("parking_lots", (string)null);
                 });
 
             modelBuilder.Entity("MobyPark_api.Data.Models.Reservation", b =>
