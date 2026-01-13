@@ -26,7 +26,6 @@ public static class UserImporter
         // Loop through all in json file.
         foreach (var o in doc.RootElement.EnumerateArray())
         {
-            //var o = item.Value;
             // Check required fields are converted.
             if (!o.TryGetProperty("id", out var idProp) || 
                 !o.TryGetProperty("username", out var nameProp) || 
@@ -58,8 +57,7 @@ public static class UserImporter
             short? birthYear = o.TryGetProperty("birth_year", out var b) && b.TryGetInt16(out var by) ? by : null;
             var active = o.TryGetProperty("active", out var a) && a.ValueKind == JsonValueKind.False ? false : true;
 
-            var user = db.Users.FirstOrDefault(u => u.Id == id) 
-           ?? db.Users.FirstOrDefault(u => u.Username == username);
+            var user = db.Users.FirstOrDefault(u => u.Id == id) ?? db.Users.FirstOrDefault(u => u.Username == username);
 
             // Inserting or updating user in the database.
             if (user == null)
@@ -99,6 +97,7 @@ public static class UserImporter
         }
         // Save changes of import to the database.
         db.SaveChanges();
+        // Import Summary.
         Console.WriteLine($"Users → inserted={inserted}, updated={updated}, skipped={skipped}"); 
         skipReasons.Select(reason => $"- [{reason}").ToList().ForEach(Console.WriteLine);
     }

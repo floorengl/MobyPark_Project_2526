@@ -9,6 +9,7 @@ public static class ParkingLotImporter
 {
     public static void Import(AppDbContext db, string basePath)
     {
+        // Checking if the json file exists.
         var path = Path.Combine(basePath, "parking-lots.json");
         if (!File.Exists(path))
         {
@@ -16,42 +17,50 @@ public static class ParkingLotImporter
             return;
         }
 
+        // Variables.
         var doc = JsonDocument.Parse(File.ReadAllText(path));
-
         int inserted = 0, updated = 0, skipped = 0;
+        var skipReasons = new List<string>();
 
+        // Loop through all in json file.
         foreach (var item in doc.RootElement.EnumerateObject())
         {
             var o = item.Value;
-
+            // Check required fields are converted.
             if (!o.TryGetProperty("id", out var idProp) ||
                 !o.TryGetProperty("name", out var nameProp) ||
                 !o.TryGetProperty("location", out var locationProp))
             {
                 skipped++;
+                skipReasons.Add("Missing required JSON properties (id, username, or password).");
                 continue;
             }
-
+            // Check id can be converted into long.
             if (!long.TryParse(idProp.ToString(), out var id))
             {
                 skipped++;
+                skipReasons.Add("ID is not a valid number.");
                 continue;
             }
 
+            // All fields.
             var name = nameProp.ToString();
             var location = locationProp.ToString();
-
-            // read optional fields safely
             var address = o.TryGetProperty("address", out var a) ? a.ToString() : null;
             var capacity = (o.TryGetProperty("capacity", out var c) && c.TryGetInt64(out var cap)) ? cap : 0;
-
-            var tariff = ReadDecimal(o, "tariff");
-            var dayTariff = ReadDecimal(o, "day_tariff", "daytariff");
-
-            var coordinates = ReadCoordinates(o); // converting {lat,lng} to "lat,lng"
-
+            var tariff = (o.TryGetProperty("tariff", out var tProp) && 
+                (tProp.ValueKind == JsonValueKind.Number ? tProp.TryGetDecimal(out var tv) : decimal.TryParse(tProp.GetString(), NumberStyles.Float, CultureInfo.InvariantCulture, out tv))) 
+                ? tv : (decimal?)null;
+            var dayTariff = ((o.TryGetProperty("day_tariff", out var dtProp) || o.TryGetProperty("daytariff", out dtProp)) && 
+                (dtProp.ValueKind == JsonValueKind.Number ? dtProp.TryGetDecimal(out var dtv) : decimal.TryParse(dtProp.GetString(), NumberStyles.Float, CultureInfo.InvariantCulture, out dtv))) 
+                ? dtv : (decimal?)null;
+            var coordinates = o.TryGetProperty("coordinates", out var v) && v.ValueKind == JsonValueKind.Object 
+                ? $"{v.GetProperty("lat")},{v.GetProperty("lng")}" 
+                : null;
+            
             var lot = db.ParkingLots.FirstOrDefault(p => p.Id == id);
 
+            // Inserting or updating parkinglot in the database.
             if (lot == null)
             {
                 db.ParkingLots.Add(new ParkingLot
@@ -82,53 +91,10 @@ public static class ParkingLotImporter
                 updated++;
             }
         }
-
+        // Save changes of import to the database.
         db.SaveChanges();
+        // Import Summary.
         Console.WriteLine($"ParkingLots → inserted={inserted}, updated={updated}, skipped={skipped}");
-    }
-
-    private static decimal? ReadDecimal(JsonElement o, params string[] keys)
-    {
-        foreach (var key in keys)
-        {
-            if (!o.TryGetProperty(key, out var v)) continue;
-
-            // JSON number (1.9, 11, etc.)
-            if (v.ValueKind == JsonValueKind.Number)
-            {
-                if (v.TryGetDecimal(out var dec))
-                    return dec;
-
-                // fallback
-                if (v.TryGetDouble(out var d))
-                    return (decimal)d;
-            }
-
-            // JSON string ("1.9")
-            if (v.ValueKind == JsonValueKind.String &&
-                decimal.TryParse(v.GetString(), NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed))
-                return parsed;
-        }
-
-        return null;
-    }
-
-
-    private static string? ReadCoordinates(JsonElement o)
-    {
-        if (!o.TryGetProperty("coordinates", out var v)) return null;
-
-        // coordinates object: {"lat":52.3,"lng":5.2}
-        if (v.ValueKind == JsonValueKind.Object &&
-            v.TryGetProperty("lat", out var lat) &&
-            v.TryGetProperty("lng", out var lng) &&
-            lat.TryGetDouble(out var la) &&
-            lng.TryGetDouble(out var ln))
-        {
-            return $"{la.ToString(CultureInfo.InvariantCulture)},{ln.ToString(CultureInfo.InvariantCulture)}";
-        }
-
-        // fallback: store raw json/text
-        return v.ValueKind == JsonValueKind.Object ? v.GetRawText() : v.ToString();
+        skipReasons.Select(reason => $"- [{reason}").ToList().ForEach(Console.WriteLine);
     }
 }
