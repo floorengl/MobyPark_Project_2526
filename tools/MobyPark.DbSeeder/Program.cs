@@ -23,5 +23,7 @@ var rawPath = Path.Combine(AppContext.BaseDirectory, "raw");
 Console.WriteLine("\n--- IMPORT SUMMARY ---");
 ParkingLotImporter.Import(db, rawPath);
 UserImporter.Import(db, rawPath);
+VehicleImporter.Import(db, rawPath);
+ReservationsImporter.Import(db, rawPath);
 // Returned message in CLI
 Console.WriteLine("ALL IMPORTS DONE");

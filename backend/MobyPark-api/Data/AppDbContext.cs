@@ -330,5 +330,44 @@ public class AppDbContext : DbContext
                 .HasColumnName("discount-id")
                 .HasColumnType("bigint");
         });
+        // Vehicles
+        b.Entity<Vehicle>(e =>
+        {
+            e.ToTable("vehicles");
+            e.HasKey(x => x.Id);
+
+            e.Property(x => x.Id)
+                .HasColumnName("id")
+                .HasColumnType("bigint");
+
+            e.Property(x => x.LicensePlate)
+                .HasColumnName("license_plate")
+                .HasColumnType("text")
+                .IsRequired();
+
+            e.Property(x => x.Make)
+                .HasColumnName("make")
+                .HasColumnType("text");
+
+            e.Property(x => x.Model)
+                .HasColumnName("model")
+                .HasColumnType("text");
+
+            e.Property(x => x.Color)
+                .HasColumnName("color")
+                .HasColumnType("text");
+
+            e.Property(x => x.Year)
+                .HasColumnName("year")
+                .HasColumnType("timestamptz");
+
+            e.Property(x => x.UserId)
+                .HasColumnName("user_id")
+                .HasColumnType("bigint");
+
+            e.Property(x => x.CreatedAt)
+                .HasColumnName("created_at")
+                .HasColumnType("timestamptz");
+        });
     }
 }

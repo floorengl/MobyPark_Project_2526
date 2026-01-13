@@ -159,25 +159,25 @@ namespace MobyPark_api.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Vehicles",
+                name: "vehicles",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
+                    id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    LicensePlate = table.Column<string>(type: "text", nullable: false),
-                    Make = table.Column<string>(type: "text", nullable: true),
-                    Model = table.Column<string>(type: "text", nullable: true),
-                    Color = table.Column<string>(type: "text", nullable: true),
-                    Year = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    UserId = table.Column<long>(type: "bigint", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    license_plate = table.Column<string>(type: "text", nullable: false),
+                    make = table.Column<string>(type: "text", nullable: true),
+                    model = table.Column<string>(type: "text", nullable: true),
+                    color = table.Column<string>(type: "text", nullable: true),
+                    year = table.Column<DateTime>(type: "timestamptz", nullable: true),
+                    user_id = table.Column<long>(type: "bigint", nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamptz", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Vehicles", x => x.Id);
+                    table.PrimaryKey("PK_vehicles", x => x.id);
                     table.ForeignKey(
-                        name: "FK_Vehicles_users_UserId",
-                        column: x => x.UserId,
+                        name: "FK_vehicles_users_user_id",
+                        column: x => x.user_id,
                         principalTable: "users",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
@@ -276,9 +276,9 @@ namespace MobyPark_api.Migrations
                 column: "email");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Vehicles_UserId",
-                table: "Vehicles",
-                column: "UserId");
+                name: "IX_vehicles_user_id",
+                table: "vehicles",
+                column: "user_id");
         }
 
         /// <inheritdoc />
@@ -297,7 +297,7 @@ namespace MobyPark_api.Migrations
                 name: "sessions");
 
             migrationBuilder.DropTable(
-                name: "Vehicles");
+                name: "vehicles");
 
             migrationBuilder.DropTable(
                 name: "transaction_data");
