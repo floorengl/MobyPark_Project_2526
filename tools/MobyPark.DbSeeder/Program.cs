@@ -20,6 +20,8 @@ using var db = new AppDbContext(options);
 // Base path for JSON files
 var rawPath = Path.Combine(AppContext.BaseDirectory, "raw");
 // Run imports (ORDER MATTERS)
+Console.WriteLine("\n--- IMPORT SUMMARY ---");
 ParkingLotImporter.Import(db, rawPath);
+UserImporter.Import(db, rawPath);
 // Returned message in CLI
 Console.WriteLine("ALL IMPORTS DONE");

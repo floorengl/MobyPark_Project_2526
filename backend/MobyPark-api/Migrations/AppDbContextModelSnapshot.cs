@@ -416,10 +416,6 @@ namespace MobyPark_api.Migrations
                     b.HasIndex("Email")
                         .HasDatabaseName("ix_users_email");
 
-                    b.HasIndex("Username")
-                        .IsUnique()
-                        .HasDatabaseName("ux_users_username");
-
                     b.ToTable("users", (string)null);
                 });
 

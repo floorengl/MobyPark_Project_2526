@@ -11,8 +11,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MobyPark_api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260112142647_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260113145604_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -418,10 +418,6 @@ namespace MobyPark_api.Migrations
 
                     b.HasIndex("Email")
                         .HasDatabaseName("ix_users_email");
-
-                    b.HasIndex("Username")
-                        .IsUnique()
-                        .HasDatabaseName("ux_users_username");
 
                     b.ToTable("users", (string)null);
                 });

@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MobyPark_api.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -274,12 +274,6 @@ namespace MobyPark_api.Migrations
                 name: "ix_users_email",
                 table: "users",
                 column: "email");
-
-            migrationBuilder.CreateIndex(
-                name: "ux_users_username",
-                table: "users",
-                column: "username",
-                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Vehicles_UserId",

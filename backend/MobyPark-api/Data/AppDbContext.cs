@@ -183,10 +183,6 @@ public class AppDbContext : DbContext
                 .HasColumnType("boolean")
                 .HasDefaultValue(true);
 
-            e.HasIndex(x => x.Username)
-                .IsUnique()
-                .HasDatabaseName("ux_users_username");
-
             e.HasIndex(x => x.Email)
                 .HasDatabaseName("ix_users_email");
         });
