@@ -3,12 +3,14 @@ using System.Text.Json;
 using Microsoft.VisualBasic;
 using MobyPark_api.Data;
 using MobyPark_api.Data.Models;
+using Microsoft.EntityFrameworkCore;
+
 
 namespace MobyPark.DbSeeder.Importers;
 
 public static class UserImporter
 {
-    public static void Import(AppDbContext db, string basePath)
+    public static async Task ImportAsync(AppDbContext db, string basePath)
     {
         // Checking if the json file exists.
         var path = Path.Combine(basePath, "users.json");
@@ -19,7 +21,8 @@ public static class UserImporter
         }
 
         // Variables.
-        var doc = JsonDocument.Parse(File.ReadAllText(path));
+        await using var fs = File.OpenRead(path);
+        var doc = await JsonDocument.ParseAsync(fs);
         int inserted = 0, updated = 0, skipped = 0;
         var skipReasons = new List<string>();
 
@@ -57,7 +60,7 @@ public static class UserImporter
             short? birthYear = o.TryGetProperty("birth_year", out var b) && b.TryGetInt16(out var by) ? by : null;
             var active = o.TryGetProperty("active", out var a) && a.ValueKind == JsonValueKind.False ? false : true;
 
-            var user = db.Users.FirstOrDefault(u => u.Id == id) ?? db.Users.FirstOrDefault(u => u.Username == username);
+            var user = await db.Users.FirstOrDefaultAsync(u => u.Id == id) ?? db.Users.FirstOrDefault(u => u.Username == username);
 
             // Inserting or updating user in the database.
             if (user == null)
@@ -96,7 +99,7 @@ public static class UserImporter
             }
         }
         // Save changes of import to the database.
-        db.SaveChanges();
+        await db.SaveChangesAsync();
         // Import Summary.
         Console.WriteLine($"Users → inserted={inserted}, updated={updated}, skipped={skipped}"); 
         skipReasons.Select(reason => $"- [{reason}").ToList().ForEach(Console.WriteLine);

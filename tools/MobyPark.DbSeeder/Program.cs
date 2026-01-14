@@ -21,9 +21,10 @@ using var db = new AppDbContext(options);
 var rawPath = Path.Combine(AppContext.BaseDirectory, "raw");
 // Run imports (ORDER MATTERS)
 Console.WriteLine("\n--- IMPORT SUMMARY ---");
-ParkingLotImporter.Import(db, rawPath);
-UserImporter.Import(db, rawPath);
-VehicleImporter.Import(db, rawPath);
-ReservationsImporter.Import(db, rawPath);
+await ParkingLotImporter.ImportAsync(db, rawPath);
+await UserImporter.ImportAsync(db, rawPath);
+await VehicleImporter.ImportAsync(db, rawPath);
+await ReservationsImporter.ImportAsync(db, rawPath);
+await PaymentsImporter.ImportAsync(db, rawPath);
 // Returned message in CLI
 Console.WriteLine("ALL IMPORTS DONE");
