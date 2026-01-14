@@ -45,6 +45,78 @@ namespace MobyPark_api.Migrations
                     b.ToTable("licenseplates", (string)null);
                 });
 
+            modelBuilder.Entity("MobyPark_api.Data.Models.Discount", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric")
+                        .HasColumnName("amount");
+
+                    b.Property<int>("DiscountType")
+                        .HasColumnType("int")
+                        .HasColumnName("discount-type");
+
+                    b.Property<DateTime?>("End")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("end");
+
+                    b.Property<int>("Operator")
+                        .HasColumnType("int")
+                        .HasColumnName("operator");
+
+                    b.PrimitiveCollection<long[]>("ParkingLotIds")
+                        .HasColumnType("bigint[]");
+
+                    b.Property<DateTime?>("Start")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("start");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("title");
+
+                    b.Property<string>("TypeSpecificData")
+                        .HasColumnType("text")
+                        .HasColumnName("type-specific-data");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Discounts", (string)null);
+                });
+
+            modelBuilder.Entity("MobyPark_api.Data.Models.DiscountParkingLot", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("DiscountId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("discount-id");
+
+                    b.Property<long>("ParkingLotId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("parking-lot-id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DiscountId");
+
+                    b.HasIndex("ParkingLotId");
+
+                    b.ToTable("discount-parking-lot", (string)null);
+                });
+
             modelBuilder.Entity("MobyPark_api.Data.Models.ParkingLot", b =>
                 {
                     b.Property<long>("Id")
@@ -70,9 +142,12 @@ namespace MobyPark_api.Migrations
                         .HasColumnType("timestamptz")
                         .HasColumnName("created_at");
 
-                    b.Property<float?>("DayTariff")
-                        .HasColumnType("real")
+                    b.Property<decimal?>("DayTariff")
+                        .HasColumnType("numeric")
                         .HasColumnName("day_tariff");
+
+                    b.Property<long?>("DiscountId")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("Location")
                         .IsRequired()
@@ -84,13 +159,15 @@ namespace MobyPark_api.Migrations
                         .HasColumnType("text")
                         .HasColumnName("name");
 
-                    b.Property<float?>("Tariff")
-                        .HasColumnType("real")
+                    b.Property<decimal?>("Tariff")
+                        .HasColumnType("numeric")
                         .HasColumnName("tariff");
 
                     b.HasKey("Id");
 
-                    b.ToTable("ParkingLots", (string)null);
+                    b.HasIndex("DiscountId");
+
+                    b.ToTable("parking_lots", (string)null);
                 });
 
             modelBuilder.Entity("MobyPark_api.Data.Models.Reservation", b =>
@@ -101,8 +178,8 @@ namespace MobyPark_api.Migrations
                         .HasColumnName("id")
                         .HasDefaultValueSql("uuid_generate_v4()");
 
-                    b.Property<float?>("Cost")
-                        .HasColumnType("real")
+                    b.Property<decimal?>("Cost")
+                        .HasColumnType("numeric")
                         .HasColumnName("cost");
 
                     b.Property<DateTime>("CreatedAt")
@@ -134,44 +211,52 @@ namespace MobyPark_api.Migrations
 
                     b.HasIndex("ParkingLotId");
 
-                    b.ToTable("Reservations", (string)null);
+                    b.ToTable("reservations", (string)null);
                 });
 
             modelBuilder.Entity("MobyPark_api.Data.Models.Vehicle", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<string>("Color")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("color");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created_at");
 
                     b.Property<string>("LicensePlate")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("license_plate");
 
                     b.Property<string>("Make")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("make");
 
                     b.Property<string>("Model")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("model");
 
                     b.Property<long>("UserId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnName("user_id");
 
                     b.Property<DateTime?>("Year")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("year");
 
                     b.HasKey("Id");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Vehicles");
+                    b.ToTable("vehicles", (string)null);
                 });
 
             modelBuilder.Entity("Payment", b =>
@@ -219,8 +304,8 @@ namespace MobyPark_api.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<float?>("Cost")
-                        .HasColumnType("real");
+                    b.Property<decimal?>("Cost")
+                        .HasColumnType("numeric");
 
                     b.Property<short?>("DurationMinutes")
                         .HasColumnType("smallint");
@@ -339,11 +424,33 @@ namespace MobyPark_api.Migrations
                     b.HasIndex("Email")
                         .HasDatabaseName("ix_users_email");
 
-                    b.HasIndex("Username")
-                        .IsUnique()
-                        .HasDatabaseName("ux_users_username");
-
                     b.ToTable("users", (string)null);
+                });
+
+            modelBuilder.Entity("MobyPark_api.Data.Models.DiscountParkingLot", b =>
+                {
+                    b.HasOne("MobyPark_api.Data.Models.Discount", "Discount")
+                        .WithMany()
+                        .HasForeignKey("DiscountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MobyPark_api.Data.Models.ParkingLot", "ParkingLot")
+                        .WithMany()
+                        .HasForeignKey("ParkingLotId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Discount");
+
+                    b.Navigation("ParkingLot");
+                });
+
+            modelBuilder.Entity("MobyPark_api.Data.Models.ParkingLot", b =>
+                {
+                    b.HasOne("MobyPark_api.Data.Models.Discount", null)
+                        .WithMany("ParkingLots")
+                        .HasForeignKey("DiscountId");
                 });
 
             modelBuilder.Entity("MobyPark_api.Data.Models.Reservation", b =>
@@ -392,6 +499,11 @@ namespace MobyPark_api.Migrations
             modelBuilder.Entity("Licenseplate", b =>
                 {
                     b.Navigation("Sessions");
+                });
+
+            modelBuilder.Entity("MobyPark_api.Data.Models.Discount", b =>
+                {
+                    b.Navigation("ParkingLots");
                 });
 
             modelBuilder.Entity("User", b =>

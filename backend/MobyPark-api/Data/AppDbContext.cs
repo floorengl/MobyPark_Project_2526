@@ -4,6 +4,7 @@ using MobyPark_api.Data.Models;
 using System.Reflection.Emit;
 using Microsoft.EntityFrameworkCore.ValueGeneration;
 using Microsoft.Net.Http.Headers;
+using Microsoft.AspNetCore.Identity;
 
 public class AppDbContext : DbContext
 {
@@ -18,6 +19,8 @@ public class AppDbContext : DbContext
 
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<TransactionData> Transactions => Set<TransactionData>();
+    public DbSet<Discount> Discounts => Set<Discount>();
+    public DbSet<DiscountParkingLot> DiscountParkingLots => Set<DiscountParkingLot>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -180,17 +183,13 @@ public class AppDbContext : DbContext
                 .HasColumnType("boolean")
                 .HasDefaultValue(true);
 
-            e.HasIndex(x => x.Username)
-                .IsUnique()
-                .HasDatabaseName("ux_users_username");
-
             e.HasIndex(x => x.Email)
                 .HasDatabaseName("ix_users_email");
         });
         // Parkinglots.
         b.Entity<ParkingLot>(e =>
         {
-            e.ToTable("ParkingLots");
+            e.ToTable("parking_lots");
             e.HasKey(x => x.Id);
 
             e.Property(x => x.Id)
@@ -217,11 +216,11 @@ public class AppDbContext : DbContext
 
             e.Property(x => x.Tariff)
                 .HasColumnName("tariff")
-                .HasColumnType("real");
+                .HasColumnType("numeric");
 
             e.Property(x => x.DayTariff)
                 .HasColumnName("day_tariff")
-                .HasColumnType("real");
+                .HasColumnType("numeric");
 
             e.Property(x => x.CreatedAt)
                 .HasColumnName("created_at")
@@ -234,7 +233,7 @@ public class AppDbContext : DbContext
         // Reservations.
         b.Entity<Reservation>(e =>
         {
-            e.ToTable("Reservations");
+            e.ToTable("reservations");
             e.HasKey(x => x.Id);
 
             e.Property(x => x.Id)
@@ -265,7 +264,7 @@ public class AppDbContext : DbContext
 
             e.Property(x => x.Cost)
                 .HasColumnName("cost")
-                .HasColumnType("real");
+                .HasColumnType("numeric");
 
             e.Property(x => x.Status)
                 .HasColumnName("status")
@@ -275,6 +274,100 @@ public class AppDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(x => x.ParkingLotId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+        b.Entity<Discount>(e =>
+        {
+            e.ToTable("Discounts");
+            e.HasKey(e => e.Id);
+
+            e.Property(x => x.Id)
+                .HasColumnName("id")
+                .HasColumnType("bigint");
+
+            e.Property(x => x.Title)
+                .HasColumnName("title")
+                .HasColumnType("text");
+
+            e.Property(x => x.Amount)
+                .HasColumnName("amount")
+                .HasColumnType("numeric");
+
+            e.Property(x => x.Operator)
+                .HasColumnName("operator")
+                .HasColumnType("int");
+
+            e.Property(x => x.Start)
+                .HasColumnName("start")
+                .HasColumnType("timestamptz");
+
+            e.Property(x => x.End)
+            .HasColumnName("end")
+            .HasColumnType("timestamptz");
+
+            e.Property(x => x.DiscountType)
+                .HasColumnName("discount-type")
+                .HasColumnType("int");
+
+            e.Property(x => x.TypeSpecificData)
+                .HasColumnName("type-specific-data")
+                .HasColumnType("text");
+        });
+
+        b.Entity<DiscountParkingLot>(e =>
+        {
+            e.ToTable("discount-parking-lot");
+            e.HasKey(e => e.Id);
+
+            e.Property(x => x.Id)
+                .HasColumnName("id")
+                .HasColumnType("bigint");
+
+            e.Property(x => x.ParkingLotId)
+                .HasColumnName("parking-lot-id")
+                .HasColumnType("bigint");
+
+            e.Property(x => x.DiscountId)
+                .HasColumnName("discount-id")
+                .HasColumnType("bigint");
+        });
+        // Vehicles
+        b.Entity<Vehicle>(e =>
+        {
+            e.ToTable("vehicles");
+            e.HasKey(x => x.Id);
+
+            e.Property(x => x.Id)
+                .HasColumnName("id")
+                .HasColumnType("bigint");
+
+            e.Property(x => x.LicensePlate)
+                .HasColumnName("license_plate")
+                .HasColumnType("text")
+                .IsRequired();
+
+            e.Property(x => x.Make)
+                .HasColumnName("make")
+                .HasColumnType("text");
+
+            e.Property(x => x.Model)
+                .HasColumnName("model")
+                .HasColumnType("text");
+
+            e.Property(x => x.Color)
+                .HasColumnName("color")
+                .HasColumnType("text");
+
+            e.Property(x => x.Year)
+                .HasColumnName("year")
+                .HasColumnType("timestamptz");
+
+            e.Property(x => x.UserId)
+                .HasColumnName("user_id")
+                .HasColumnType("bigint");
+
+            e.Property(x => x.CreatedAt)
+                .HasColumnName("created_at")
+                .HasColumnType("timestamptz");
         });
     }
 }

@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Xunit;
 using MobyPark_api.Enums;
 
-namespace MobyPark_api.tests
+namespace MobyPark_api.tests.DbAccess
 {
     public class TestPaymentRepository : IClassFixture<DatabaseFixture>
     {

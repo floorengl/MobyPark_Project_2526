@@ -20,9 +20,9 @@ namespace MobyPark_api.Data.Models
 
         public long Capacity { get; set; }
 
-        public float? Tariff { get; set; }
+        public decimal? Tariff { get; set; }
 
-        public float? DayTariff { get; set; }
+        public decimal? DayTariff { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

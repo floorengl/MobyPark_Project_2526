@@ -7,13 +7,33 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MobyPark_api.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AlterDatabase()
                 .Annotation("Npgsql:PostgresExtension:uuid-ossp", ",,");
+
+            migrationBuilder.CreateTable(
+                name: "Discounts",
+                columns: table => new
+                {
+                    id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    title = table.Column<string>(type: "text", nullable: false),
+                    amount = table.Column<decimal>(type: "numeric", nullable: false),
+                    @operator = table.Column<int>(name: "operator", type: "int", nullable: false),
+                    start = table.Column<DateTime>(type: "timestamptz", nullable: true),
+                    end = table.Column<DateTime>(type: "timestamptz", nullable: true),
+                    ParkingLotIds = table.Column<long[]>(type: "bigint[]", nullable: true),
+                    discounttype = table.Column<int>(name: "discount-type", type: "int", nullable: false),
+                    typespecificdata = table.Column<string>(name: "type-specific-data", type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Discounts", x => x.id);
+                });
 
             migrationBuilder.CreateTable(
                 name: "licenseplates",
@@ -26,26 +46,6 @@ namespace MobyPark_api.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_licenseplates", x => x.id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ParkingLots",
-                columns: table => new
-                {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    Location = table.Column<string>(type: "text", nullable: false),
-                    Address = table.Column<string>(type: "text", nullable: false),
-                    Capacity = table.Column<long>(type: "bigint", nullable: false),
-                    Tariff = table.Column<float>(type: "real", nullable: true),
-                    DayTariff = table.Column<float>(type: "real", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Coordinates = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ParkingLots", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -86,6 +86,32 @@ namespace MobyPark_api.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "parking_lots",
+                columns: table => new
+                {
+                    id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    name = table.Column<string>(type: "text", nullable: false),
+                    location = table.Column<string>(type: "text", nullable: false),
+                    address = table.Column<string>(type: "text", nullable: true),
+                    capacity = table.Column<long>(type: "bigint", nullable: false),
+                    tariff = table.Column<decimal>(type: "numeric", nullable: true),
+                    day_tariff = table.Column<decimal>(type: "numeric", nullable: true),
+                    created_at = table.Column<DateTime>(type: "timestamptz", nullable: false),
+                    coordinates = table.Column<string>(type: "text", nullable: true),
+                    DiscountId = table.Column<long>(type: "bigint", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_parking_lots", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_parking_lots_Discounts_DiscountId",
+                        column: x => x.DiscountId,
+                        principalTable: "Discounts",
+                        principalColumn: "id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "sessions",
                 columns: table => new
                 {
@@ -96,7 +122,7 @@ namespace MobyPark_api.Migrations
                     Started = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Stopped = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     DurationMinutes = table.Column<short>(type: "smallint", nullable: true),
-                    Cost = table.Column<float>(type: "real", nullable: true),
+                    Cost = table.Column<decimal>(type: "numeric", nullable: true),
                     PlateText = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
@@ -108,30 +134,6 @@ namespace MobyPark_api.Migrations
                         principalTable: "licenseplates",
                         principalColumn: "id",
                         onDelete: ReferentialAction.SetNull);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Reservations",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "uuid_generate_v4()"),
-                    ParkingLotId = table.Column<long>(type: "bigint", nullable: false),
-                    LicensePlate = table.Column<string>(type: "text", nullable: false),
-                    StartTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    EndTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Cost = table.Column<float>(type: "real", nullable: true),
-                    Status = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Reservations", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Reservations_ParkingLots_ParkingLotId",
-                        column: x => x.ParkingLotId,
-                        principalTable: "ParkingLots",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -157,29 +159,89 @@ namespace MobyPark_api.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Vehicles",
+                name: "vehicles",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
+                    id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    LicensePlate = table.Column<string>(type: "text", nullable: false),
-                    Make = table.Column<string>(type: "text", nullable: true),
-                    Model = table.Column<string>(type: "text", nullable: true),
-                    Color = table.Column<string>(type: "text", nullable: true),
-                    Year = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    UserId = table.Column<long>(type: "bigint", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    license_plate = table.Column<string>(type: "text", nullable: false),
+                    make = table.Column<string>(type: "text", nullable: true),
+                    model = table.Column<string>(type: "text", nullable: true),
+                    color = table.Column<string>(type: "text", nullable: true),
+                    year = table.Column<DateTime>(type: "timestamptz", nullable: true),
+                    user_id = table.Column<long>(type: "bigint", nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamptz", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Vehicles", x => x.Id);
+                    table.PrimaryKey("PK_vehicles", x => x.id);
                     table.ForeignKey(
-                        name: "FK_Vehicles_users_UserId",
-                        column: x => x.UserId,
+                        name: "FK_vehicles_users_user_id",
+                        column: x => x.user_id,
                         principalTable: "users",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.CreateTable(
+                name: "discount-parking-lot",
+                columns: table => new
+                {
+                    id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    discountid = table.Column<long>(name: "discount-id", type: "bigint", nullable: false),
+                    parkinglotid = table.Column<long>(name: "parking-lot-id", type: "bigint", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_discount-parking-lot", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_discount-parking-lot_Discounts_discount-id",
+                        column: x => x.discountid,
+                        principalTable: "Discounts",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_discount-parking-lot_parking_lots_parking-lot-id",
+                        column: x => x.parkinglotid,
+                        principalTable: "parking_lots",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "reservations",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "uuid_generate_v4()"),
+                    parking_lot_id = table.Column<long>(type: "bigint", nullable: false),
+                    license_plate = table.Column<string>(type: "text", nullable: false),
+                    start_time = table.Column<DateTime>(type: "timestamptz", nullable: false),
+                    end_time = table.Column<DateTime>(type: "timestamptz", nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamptz", nullable: false),
+                    cost = table.Column<decimal>(type: "numeric", nullable: true),
+                    status = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_reservations", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_reservations_parking_lots_parking_lot_id",
+                        column: x => x.parking_lot_id,
+                        principalTable: "parking_lots",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_discount-parking-lot_discount-id",
+                table: "discount-parking-lot",
+                column: "discount-id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_discount-parking-lot_parking-lot-id",
+                table: "discount-parking-lot",
+                column: "parking-lot-id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_licenseplates_license_plate_name",
@@ -188,15 +250,20 @@ namespace MobyPark_api.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_parking_lots_DiscountId",
+                table: "parking_lots",
+                column: "DiscountId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_payments_transaction_id",
                 table: "payments",
                 column: "transaction_id",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Reservations_ParkingLotId",
-                table: "Reservations",
-                column: "ParkingLotId");
+                name: "IX_reservations_parking_lot_id",
+                table: "reservations",
+                column: "parking_lot_id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_sessions_LicensePlateId",
@@ -209,43 +276,43 @@ namespace MobyPark_api.Migrations
                 column: "email");
 
             migrationBuilder.CreateIndex(
-                name: "ux_users_username",
-                table: "users",
-                column: "username",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Vehicles_UserId",
-                table: "Vehicles",
-                column: "UserId");
+                name: "IX_vehicles_user_id",
+                table: "vehicles",
+                column: "user_id");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "discount-parking-lot");
+
+            migrationBuilder.DropTable(
                 name: "payments");
 
             migrationBuilder.DropTable(
-                name: "Reservations");
+                name: "reservations");
 
             migrationBuilder.DropTable(
                 name: "sessions");
 
             migrationBuilder.DropTable(
-                name: "Vehicles");
+                name: "vehicles");
 
             migrationBuilder.DropTable(
                 name: "transaction_data");
 
             migrationBuilder.DropTable(
-                name: "ParkingLots");
+                name: "parking_lots");
 
             migrationBuilder.DropTable(
                 name: "licenseplates");
 
             migrationBuilder.DropTable(
                 name: "users");
+
+            migrationBuilder.DropTable(
+                name: "Discounts");
         }
     }
 }

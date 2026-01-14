@@ -5,9 +5,10 @@ public sealed class SessionService : ISessionService
 {
     private readonly ISessionRepository _repo;
     private readonly IPaymentService _paymentService;
+    private readonly IPricingService _pricingService;
 
-    public SessionService(ISessionRepository repo, IPaymentService paymentService)
-        => (_repo, _paymentService) = (repo, paymentService);
+    public SessionService(ISessionRepository repo, IPaymentService paymentService, IPricingService pricingService)
+        => (_repo, _paymentService, _pricingService) = (repo, paymentService, pricingService);
 
     // Start session
     public async Task<long> StartForPlateAsync(long parkingLotId, long licensePlateId, CancellationToken ct)
@@ -47,14 +48,15 @@ public sealed class SessionService : ISessionService
             (int)Math.Ceiling((session.Stopped.Value - session.Started).TotalMinutes));
         session.DurationMinutes = (short)Math.Min(short.MaxValue, totalMinutes);
 
+        decimal sessionCost = await _pricingService.GetPrice(session);
+
         if (reservationsByPlate == null || reservationsByPlate.Count == 0)
         {
             // pay full session
-            var parkinglot = await _repo.GetParkingLotAsync(parkingLotId, ct);
-            var pricePerHour = parkinglot?.Tariff ?? 0;
-
-            session.Cost = (float)(totalMinutes / 60.0) * pricePerHour;
+            session.Cost = sessionCost;
             await _repo.SaveChangesAsync(ct);
+
+            if (session.Cost == 0) return; // session can be free if it is less than 3 minutes
 
             var addDto = new AddPaymentDto
             {
@@ -80,14 +82,9 @@ public sealed class SessionService : ISessionService
             .Where(r => r.Status != ReservationStatus.UnUsed)
             .ToList();
 
-        int chargeableMinutes = CalculateChargeableMinutes(
-            session.Started,
-            session.Stopped.Value,
-            chargedReservations);
-
         // mark reservation as used only after it expires AND was used at least once
         var now = DateTime.UtcNow;
-
+        decimal payedThroughReservation = 0;
         foreach (var reservation in chargedReservations)
         {
             bool wasUsed =
@@ -95,12 +92,20 @@ public sealed class SessionService : ISessionService
                 session.Stopped.Value > reservation.StartTime;
 
             if (wasUsed && now > reservation.EndTime)
+            {
                 reservation.Status = ReservationStatus.Used;
+                payedThroughReservation += reservation.Cost ?? 0;
+            }
         }
 
-        if (chargeableMinutes == 0)
+        sessionCost -= payedThroughReservation;
+        if (sessionCost < 0)
+            sessionCost = 0;
+
+        session.Cost = sessionCost;
+
+        if (sessionCost == 0)
         {
-            session.Cost = 0;
             await _repo.SaveChangesAsync(ct);
             return;
         }
@@ -109,7 +114,6 @@ public sealed class SessionService : ISessionService
         var parkingLot = await _repo.GetParkingLotAsync(parkingLotId, ct);
         var tariff = parkingLot?.Tariff ?? 0;
 
-        session.Cost = (float)(chargeableMinutes / 60.0) * tariff;
         await _repo.SaveChangesAsync(ct);
 
         var paymentDto = new AddPaymentDto
@@ -131,26 +135,26 @@ public sealed class SessionService : ISessionService
         await _paymentService.AddPaymentAsync(paymentDto, ct);
     }
 
-    private static int CalculateChargeableMinutes(
-        DateTime sessionStart,
-        DateTime sessionEnd,
-        IEnumerable<Reservation> reservations)
-    {
-        var chargeableMinutes =
-            (int)Math.Ceiling((sessionEnd - sessionStart).TotalMinutes);
+    //private static int CalculateChargeableMinutes(
+    //    DateTime sessionStart,
+    //    DateTime sessionEnd,
+    //    IEnumerable<Reservation> reservations)
+    //{
+    //    var chargeableMinutes =
+    //        (int)Math.Ceiling((sessionEnd - sessionStart).TotalMinutes);
 
-        foreach (var r in reservations)
-        {
-            // Find overlap between session and reservation
-            var overlapStart = sessionStart > r.StartTime ? sessionStart : r.StartTime;
-            var overlapEnd = sessionEnd < r.EndTime ? sessionEnd : r.EndTime;
+    //    foreach (var r in reservations)
+    //    {
+    //        // Find overlap between session and reservation
+    //        var overlapStart = sessionStart > r.StartTime ? sessionStart : r.StartTime;
+    //        var overlapEnd = sessionEnd < r.EndTime ? sessionEnd : r.EndTime;
 
-            if (overlapEnd > overlapStart)
-            {
-                chargeableMinutes -=
-                    (int)Math.Ceiling((overlapEnd - overlapStart).TotalMinutes);
-            }
-        }
-        return Math.Max(0, chargeableMinutes);
-    }
+    //        if (overlapEnd > overlapStart)
+    //        {
+    //            chargeableMinutes -=
+    //                (int)Math.Ceiling((overlapEnd - overlapStart).TotalMinutes);
+    //        }
+    //    }
+    //    return Math.Max(0, chargeableMinutes);
+    //}
 }
