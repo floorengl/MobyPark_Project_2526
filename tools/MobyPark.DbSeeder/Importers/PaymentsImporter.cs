@@ -131,6 +131,9 @@ public static class PaymentsImporter
                 sinceSave = 0;
             }
         }
+        // Save changes and clear.
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
         // Import Summary.
         Console.WriteLine($"Payments → Payments inserted={pInserted}, Transactions inserted={tInserted}, skipped={skipped}");
     }
