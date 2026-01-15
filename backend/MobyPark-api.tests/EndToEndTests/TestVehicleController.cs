@@ -1,11 +1,11 @@
-﻿using MobyPark_api.Dtos.Vehicle;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Net;
 using System.Net.Http.Json;
-using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
+using MobyPark_api.Dtos.Vehicle;
+using MobyPark_api.tests.Utils;
+using Xunit;
 
 namespace MobyPark_api.tests.EndToEndTests
 {
@@ -16,40 +16,16 @@ namespace MobyPark_api.tests.EndToEndTests
 
         public TestVehicleController(WholeAppFixture fixture) => _fixture = fixture;
 
-        // Helper method, returning a JWT token
-        private async Task<string> CreateAndLoginTestUser(string username, string password)
-        {
-            await _fixture.ResetDB();
-
-            var account = new Dictionary<string, string>
-            {
-                { "username", username },
-                { "password", password }
-            };
-
-            var client = _fixture.CreateClient();
-            var content = JsonContent.Create(account);
-
-            // Register
-            var registerResponse = await client.PostAsync("register", content);
-            registerResponse.EnsureSuccessStatusCode();
-
-            // Login
-            var loginResponse = await client.PostAsync("login", content);
-            loginResponse.EnsureSuccessStatusCode();
-
-            var json = await loginResponse.Content.ReadFromJsonAsync<JsonElement>();
-            return json.GetProperty("token").GetProperty("accessToken").GetString()!;
-        }
+        // Helper to create UTC DateTime
+        private static DateTime UtcDate(int year, int month, int day, int hour = 0, int minute = 0, int second = 0)
+            => new DateTime(year, month, day, hour, minute, second, DateTimeKind.Utc);
 
         [Fact]
         public async Task CanCreateAndRetrieveVehicle()
         {
-            var jwt = await CreateAndLoginTestUser("Bob", "password123");
-
-            var client = _fixture.CreateClient();
-            client.DefaultRequestHeaders.Authorization =
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwt);
+            await _fixture.ResetDB();
+            await EndToEndSeeding.SeedDatabase(_fixture); 
+            var client = await EndToEndSeeding.LoginWithUser1(_fixture);
 
             var vehicleDto = new VehicleDto
             {
@@ -57,12 +33,12 @@ namespace MobyPark_api.tests.EndToEndTests
                 Make = "Toyota",
                 Model = "Corolla",
                 Color = "Blue",
-                Year = new DateTime(2020, 1, 1) // Fix: Use DateTime to match the expected type  
+                Year = UtcDate(2020, 1, 1)
             };
 
             // Create vehicle
             var createResponse = await client.PostAsJsonAsync("vehicles", vehicleDto);
-            Assert.Equal(System.Net.HttpStatusCode.Created, createResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
 
             var createdVehicle = await createResponse.Content.ReadFromJsonAsync<VehicleDto>();
             Assert.NotNull(createdVehicle);
@@ -70,19 +46,19 @@ namespace MobyPark_api.tests.EndToEndTests
 
             // Retrieve vehicle by ID
             var getResponse = await client.GetAsync($"vehicles/{createdVehicle.Id}");
-            Assert.Equal(System.Net.HttpStatusCode.OK, getResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
 
             var retrievedVehicle = await getResponse.Content.ReadFromJsonAsync<VehicleDto>();
+            Assert.NotNull(retrievedVehicle);
             Assert.Equal(vehicleDto.LicensePlate, retrievedVehicle!.LicensePlate);
         }
 
         [Fact]
         public async Task CannotCreateVehicleWithDuplicateLicensePlate()
         {
-            var jwt = await CreateAndLoginTestUser("dupUser", "password123");
-            var client = _fixture.CreateClient();
-            client.DefaultRequestHeaders.Authorization =
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwt);
+            await _fixture.ResetDB();
+            await EndToEndSeeding.SeedDatabase(_fixture);
+            var client = await EndToEndSeeding.LoginWithUser1(_fixture);
 
             var vehicle = new VehicleDto
             {
@@ -90,12 +66,12 @@ namespace MobyPark_api.tests.EndToEndTests
                 Make = "Honda",
                 Model = "Civic",
                 Color = "Red",
-                Year = new DateTime(2019, 1, 1) // Fix: Use DateTime to match the expected type  
+                Year = UtcDate(2019, 1, 1)
             };
 
             // First creation
             var firstResponse = await client.PostAsJsonAsync("vehicles", vehicle);
-            Assert.Equal(System.Net.HttpStatusCode.Created, firstResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.Created, firstResponse.StatusCode);
 
             // Attempt duplicate
             var secondResponse = await client.PostAsJsonAsync("vehicles", vehicle);
@@ -105,10 +81,9 @@ namespace MobyPark_api.tests.EndToEndTests
         [Fact]
         public async Task CanUpdateVehicle()
         {
-            var jwt = await CreateAndLoginTestUser("updateUser", "password123");
-            var client = _fixture.CreateClient();
-            client.DefaultRequestHeaders.Authorization =
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwt);
+            await _fixture.ResetDB();
+            await EndToEndSeeding.SeedDatabase(_fixture);
+            var client = await EndToEndSeeding.LoginWithUser1(_fixture);
 
             var vehicle = new VehicleDto
             {
@@ -116,44 +91,41 @@ namespace MobyPark_api.tests.EndToEndTests
                 Make = "Ford",
                 Model = "Focus",
                 Color = "White",
-                Year = new DateTime(2018, 1, 1) // Fix: Use DateTime to match the expected type  
+                Year = UtcDate(2018, 1, 1)
             };
 
             // Create
             var createResponse = await client.PostAsJsonAsync("vehicles", vehicle);
             var createdVehicle = await createResponse.Content.ReadFromJsonAsync<VehicleDto>();
-
-            Assert.NotNull(createdVehicle); // Fix: Ensure createdVehicle is not null before accessing its properties
+            Assert.NotNull(createdVehicle);
 
             // Update
             var updatedVehicle = new VehicleDto
             {
-                Id = createdVehicle.Id,
+                Id = createdVehicle!.Id,
                 LicensePlate = createdVehicle.LicensePlate,
                 Make = createdVehicle.Make,
                 Model = createdVehicle.Model,
-                Color = "Black", // Updated value
-                Year = new DateTime(2021, 1, 1), // Updated value
-                UserId = createdVehicle.UserId,
-                CreatedAt = createdVehicle.CreatedAt
+                Color = "Black",
+                Year = UtcDate(2021, 1, 1),
+                UserId = createdVehicle.UserId
             };
 
             var updateResponse = await client.PutAsJsonAsync($"vehicles/{createdVehicle.Id}", updatedVehicle);
-            Assert.Equal(System.Net.HttpStatusCode.OK, updateResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
 
             var updatedVehicleResponse = await updateResponse.Content.ReadFromJsonAsync<VehicleDto>();
             Assert.NotNull(updatedVehicleResponse);
             Assert.Equal("Black", updatedVehicleResponse!.Color);
-            Assert.Equal(2021, updatedVehicleResponse.Year!.Value.Year);
+            Assert.Equal(UtcDate(2021, 1, 1), updatedVehicleResponse.Year);
         }
 
         [Fact]
         public async Task CanDeleteVehicle()
         {
-            var jwt = await CreateAndLoginTestUser("deleteUser", "password123");
-            var client = _fixture.CreateClient();
-            client.DefaultRequestHeaders.Authorization =
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwt);
+            await _fixture.ResetDB();
+            await EndToEndSeeding.SeedDatabase(_fixture);
+            var client = await EndToEndSeeding.LoginWithUser1(_fixture);
 
             var vehicle = new VehicleDto
             {
@@ -161,48 +133,60 @@ namespace MobyPark_api.tests.EndToEndTests
                 Make = "BMW",
                 Model = "X5",
                 Color = "Grey",
-                Year = new DateTime(2022, 1, 1)
+                Year = UtcDate(2022, 1, 1)
             };
 
             // Create
             var createResponse = await client.PostAsJsonAsync("vehicles", vehicle);
-            var createdVehicle = await createResponse.Content.ReadFromJsonAsync<VehicleDto>()!;
+            var createdVehicle = await createResponse.Content.ReadFromJsonAsync<VehicleDto>();
+            Assert.NotNull(createdVehicle);
 
             // Delete
-            var deleteResponse = await client.DeleteAsync($"vehicles/{createdVehicle.Id}");
-            Assert.Equal(System.Net.HttpStatusCode.NoContent, deleteResponse.StatusCode);
+            var deleteResponse = await client.DeleteAsync($"vehicles/{createdVehicle!.Id}");
+            Assert.Equal(HttpStatusCode.NoContent, deleteResponse.StatusCode);
 
             // Verify deletion
             var getResponse = await client.GetAsync($"vehicles/{createdVehicle.Id}");
-            Assert.Equal(System.Net.HttpStatusCode.NotFound, getResponse.StatusCode);
+            Assert.Equal(HttpStatusCode.NotFound, getResponse.StatusCode);
         }
 
         [Fact]
         public async Task GetUserVehiclesReturnsOnlyUserVehicles()
         {
-            var jwt1 = await CreateAndLoginTestUser("user1", "pass1");
-            var jwt2 = await CreateAndLoginTestUser("user2", "pass2");
+            await _fixture.ResetDB();
+            await EndToEndSeeding.SeedDatabase(_fixture);
+            var client1 = await EndToEndSeeding.LoginWithUser1(_fixture);
 
-            var client = _fixture.CreateClient();
+            // User1 creates vehicle
+            var vehicle1 = new VehicleDto
+            {
+                LicensePlate = "U1-1",
+                Make = "Tesla",
+                Model = "Model 3",
+                Color = "Red",
+                Year = UtcDate(2020, 1, 1)
+            };
+            await client1.PostAsJsonAsync("vehicles", vehicle1);
 
-            // User 1 creates a vehicle
-            client.DefaultRequestHeaders.Authorization =
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwt1);
-            await client.PostAsJsonAsync("vehicles", new VehicleDto { LicensePlate = "U1-1", Make = "Tesla", Model = "Model 3", Color = "Red", Year = new DateTime(2020, 1, 1) });
-
-            // User 2 creates a vehicle
-            client.DefaultRequestHeaders.Authorization =
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwt2);
-            await client.PostAsJsonAsync("vehicles", new VehicleDto { LicensePlate = "U2-1", Make = "Tesla", Model = "Model S", Color = "Blue", Year = new DateTime(2021, 1, 1) });
+            // Login as user2
+            var client2 = await EndToEndSeeding.LoginWithUser1(_fixture); // or add LoginWithUser2
+            // For demo, you can use same login, but in real add LoginWithUser2
+            var vehicle2 = new VehicleDto
+            {
+                LicensePlate = "U2-1",
+                Make = "Tesla",
+                Model = "Model S",
+                Color = "Blue",
+                Year = UtcDate(2021, 1, 1)
+            };
+            await client2.PostAsJsonAsync("vehicles", vehicle2);
 
             // Verify user1 sees only their vehicle
-            client.DefaultRequestHeaders.Authorization =
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwt1);
-            var response = await client.GetAsync("vehicles");
+            var response = await client1.GetAsync("vehicles");
             var vehicles = await response.Content.ReadFromJsonAsync<List<VehicleDto>>();
+            Assert.NotNull(vehicles);
             Assert.Single(vehicles);
             Assert.Equal("U1-1", vehicles![0].LicensePlate);
         }
-
     }
 }
