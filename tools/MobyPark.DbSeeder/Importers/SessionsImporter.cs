@@ -32,19 +32,19 @@ public static class SessionsImporter
         // Variables
         const int maxFilesToImport = 5;
         const int batchSize = 10_000;
-        int insertedSessions = 0, updatedSessions = 0, insertedPlates = 0, skipped = 0, processed = 0, sinceSave = 0;
+        int insertedSessions = 0, updatedSessions = 0, insertedPlates = 0, skipped = 0, filesProcessed = 0, sessionsProcessed = 0, sinceSave = 0;
         var plateCache = new Dictionary<string, Licenseplate>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var file in files)
         {
-            processed++;
-            if (maxFilesToImport > 0 && processed > maxFilesToImport) break;
+            filesProcessed++;
+            if (maxFilesToImport > 0 && filesProcessed > maxFilesToImport) break;
             // Parsing into objects.
             await using var fs = File.OpenRead(file);
             using var doc = await JsonDocument.ParseAsync(fs);
             foreach (var item in doc.RootElement.EnumerateObject())
             {
-                processed++;
+                sessionsProcessed++;
                 var o = item.Value;
                 // Variables for Sessions.
                 var sessionId =
@@ -114,7 +114,9 @@ public static class SessionsImporter
                 }
 
                 // Inserting or updating session in the database.
-                var existingSession = await db.Sessions.FirstOrDefaultAsync(s => s.Id == sessionId.Value);
+                var existingSession = db.Sessions.Local.FirstOrDefault(s => s.Id == sessionId.Value)
+                     ?? await db.Sessions.FirstOrDefaultAsync(s => s.Id == sessionId.Value);
+
                 if (existingSession == null)
                 {
                     db.Sessions.Add(new Session
