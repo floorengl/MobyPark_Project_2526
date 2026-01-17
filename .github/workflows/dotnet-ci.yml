@@ -4,6 +4,7 @@ on:
   push:
     branches: [ main ]
   pull_request:
+    branches: [ main ]
 
 permissions:
   contents: read
@@ -12,6 +13,10 @@ env:
   DOTNET_VERSION: '9.0.x'
   TEST_PROJECT: backend/MobyPark-api.tests/MobyPark-api.tests.csproj
   SOLUTION: MobyPark_Project_2526.sln
+
+concurrency:
+  group: mobypark-deploy
+  cancel-in-progress: true
 
 jobs:
   build-and-test:
@@ -30,7 +35,7 @@ jobs:
         run: dotnet build "${{ env.SOLUTION }}" --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test "${{ env.SOLUTION }}" --configuration Release --no-build --logger "trx;LogFileName=test_results.trx"
+        run: dotnet test "${{ env.TEST_PROJECT }}" --configuration Release --no-build --logger "trx;LogFileName=test_results.trx"
 
       - name: Upload test results
         if: always()
