@@ -15,7 +15,7 @@ env:
   SOLUTION: MobyPark_Project_2526.sln
   TEST_PROJECT: backend/MobyPark-api.tests/MobyPark-api.tests.csproj
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/mobypark-api
+  IMAGE_NAME: floorengl/mobypark_project_2526/mobypark-api
 
 jobs:
   build-and-test:
