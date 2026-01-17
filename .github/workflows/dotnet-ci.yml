@@ -1,4 +1,4 @@
-name: .NET CI
+name: .NET CI/CD
 
 on:
   push:
@@ -8,19 +8,19 @@ on:
 
 permissions:
   contents: read
+  packages: write
 
 env:
   DOTNET_VERSION: '9.0.x'
-  TEST_PROJECT: backend/MobyPark-api.tests/MobyPark-api.tests.csproj
   SOLUTION: MobyPark_Project_2526.sln
-
-concurrency:
-  group: mobypark-deploy
-  cancel-in-progress: true
+  TEST_PROJECT: backend/MobyPark-api.tests/MobyPark-api.tests.csproj
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/mobypark-api
 
 jobs:
   build-and-test:
     runs-on: [self-hosted, linux, x64, mobypark]
+
     steps:
       - uses: actions/checkout@v4
 
@@ -31,27 +31,40 @@ jobs:
       - name: Restore
         run: dotnet restore "${{ env.SOLUTION }}"
 
-      - name: Build (Release)
-        run: dotnet build "${{ env.SOLUTION }}" --configuration Release --no-restore
+      - name: Build
+        run: dotnet build "${{ env.SOLUTION }}" -c Release --no-restore
 
       - name: Test
-        run: dotnet test "${{ env.TEST_PROJECT }}" --configuration Release --no-build --logger "trx;LogFileName=test_results.trx"
+        run: dotnet test "${{ env.TEST_PROJECT }}" -c Release --no-build
 
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: '**/test_results.trx'
-
-  deploy:
+  build-and-push-image:
     needs: build-and-test
     runs-on: [self-hosted, linux, x64, mobypark]
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Deployment
-        run: |
-          docker compose down -v || true
-          docker compose up -d --build
+      - name: Login to GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
+      - name: Build and push Docker image
+        run: |
+          IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          docker build -t $IMAGE .
+          docker push $IMAGE
+
+  deploy:
+    needs: build-and-push-image
+    runs-on: [self-hosted, linux, x64, mobypark]
+
+    steps:
+      - name: Login to GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Deploy artifact
+        env:
+          IMAGE: ghcr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
+        run: |
+          export MOBYPARK_API_IMAGE=$IMAGE
+          docker compose down || true
+          docker compose up -d
