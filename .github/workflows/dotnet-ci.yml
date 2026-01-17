@@ -50,8 +50,9 @@ jobs:
       - name: Build and push Docker image
         run: |
           IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-          docker build -t $IMAGE .
+          docker build -f backend/MobyPark-api/Dockerfile -t $IMAGE backend/MobyPark-api
           docker push $IMAGE
+
 
   deploy:
     needs: build-and-push-image
