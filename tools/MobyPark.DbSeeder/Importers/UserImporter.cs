@@ -67,7 +67,6 @@ public static class UserImporter
             {
                 db.Users.Add(new User
                 {
-                    Id = id,
                     Username = username,
                     Password = password,
                     FullName = fullName,

@@ -121,7 +121,6 @@ public static class SessionsImporter
                 {
                     db.Sessions.Add(new Session
                     {
-                        Id = sessionId.Value,
                         ParkingLotId = parkingLotId.Value,
                         PlateText = plateText!,
                         Started = startedUtc.Value,
