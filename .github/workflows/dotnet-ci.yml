@@ -72,16 +72,20 @@ jobs:
           set -e
           cd /opt/actions-runner-mobypark-runner-03/_work/MobyPark_Project_2526/MobyPark_Project_2526
 
-          export MOBYPARK_API_IMAGE="$IMAGE"
-          export POSTGRES_DB="$POSTGRES_DB"
-          export POSTGRES_USER="$POSTGRES_USER"
-          export POSTGRES_PASSWORD="$POSTGRES_PASSWORD"
+          # Make sure secrets exist
           test -n "$POSTGRES_DB"
           test -n "$POSTGRES_USER"
           test -n "$POSTGRES_PASSWORD"
-          echo "Deploy vars OK: DB=$POSTGRES_DB USER=$POSTGRES_USER"
-          docker pull "$MOBYPARK_API_IMAGE"
-          docker compose down || true
+          test -n "$IMAGE"
 
-          # Start db + api using the GHCR image (if env var is set correctly)
-          docker compose up -d
+          # Write env for docker compose interpolation
+          cat > .env <<EOF
+  POSTGRES_DB=$POSTGRES_DB
+  POSTGRES_USER=$POSTGRES_USER
+  POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+  MOBYPARK_API_IMAGE=$IMAGE
+  EOF
+
+          docker pull "$IMAGE"
+          docker compose --env-file .env down || true
+          docker compose --env-file .env up -d
