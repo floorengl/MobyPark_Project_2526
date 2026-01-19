@@ -24,7 +24,6 @@ namespace MobyPark_api.tests.EndToEndTests
         public async Task CanCreateAndRetrieveVehicle()
         {
             await _fixture.ResetDB();
-            await EndToEndSeeding.SeedDatabase(_fixture); 
             var client = await EndToEndSeeding.LoginWithUser1(_fixture);
 
             var vehicleDto = new VehicleDto
@@ -57,7 +56,6 @@ namespace MobyPark_api.tests.EndToEndTests
         public async Task CannotCreateVehicleWithDuplicateLicensePlate()
         {
             await _fixture.ResetDB();
-            await EndToEndSeeding.SeedDatabase(_fixture);
             var client = await EndToEndSeeding.LoginWithUser1(_fixture);
 
             var vehicle = new VehicleDto
@@ -69,12 +67,21 @@ namespace MobyPark_api.tests.EndToEndTests
                 Year = UtcDate(2019, 1, 1)
             };
 
+            var vehicle2 = new VehicleDto
+            {
+                LicensePlate = "DUP-123",
+                Make = "Kia",
+                Model = "Niro",
+                Color = "Black",
+                Year = UtcDate(2020, 1, 1)
+            };
+
             // First creation
             var firstResponse = await client.PostAsJsonAsync("vehicles", vehicle);
             Assert.Equal(HttpStatusCode.Created, firstResponse.StatusCode);
 
             // Attempt duplicate
-            var secondResponse = await client.PostAsJsonAsync("vehicles", vehicle);
+            var secondResponse = await client.PostAsJsonAsync("vehicles", vehicle2);
             Assert.Equal(422, (int)secondResponse.StatusCode);
         }
 
@@ -82,7 +89,6 @@ namespace MobyPark_api.tests.EndToEndTests
         public async Task CanUpdateVehicle()
         {
             await _fixture.ResetDB();
-            await EndToEndSeeding.SeedDatabase(_fixture);
             var client = await EndToEndSeeding.LoginWithUser1(_fixture);
 
             var vehicle = new VehicleDto
@@ -124,7 +130,6 @@ namespace MobyPark_api.tests.EndToEndTests
         public async Task CanDeleteVehicle()
         {
             await _fixture.ResetDB();
-            await EndToEndSeeding.SeedDatabase(_fixture);
             var client = await EndToEndSeeding.LoginWithUser1(_fixture);
 
             var vehicle = new VehicleDto
@@ -154,7 +159,6 @@ namespace MobyPark_api.tests.EndToEndTests
         public async Task GetUserVehiclesReturnsOnlyUserVehicles()
         {
             await _fixture.ResetDB();
-            await EndToEndSeeding.SeedDatabase(_fixture);
             var client1 = await EndToEndSeeding.LoginWithUser1(_fixture);
 
             // User1 creates vehicle
@@ -170,7 +174,6 @@ namespace MobyPark_api.tests.EndToEndTests
 
             // Login as user2
             var client2 = await EndToEndSeeding.LoginWithUser1(_fixture); // or add LoginWithUser2
-            // For demo, you can use same login, but in real add LoginWithUser2
             var vehicle2 = new VehicleDto
             {
                 LicensePlate = "U2-1",
