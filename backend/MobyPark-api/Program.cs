@@ -115,13 +115,17 @@ public class Program
         var app = builder.Build();
 
         // If started only for migrations, run them and exit BEFORE app.Run()
-        if (args.Contains("--migrate"))
+        using (var scope = app.Services.CreateScope())
         {
-            using var scope = app.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            db.Database.Migrate();
-            return;
+
+            if (Environment.GetEnvironmentVariable("IsXUnitTesting") != "True")
+                db.Database.Migrate();
         }
+
+        // ✅ If started only for migrations, exit NOW (no port binding)
+        if (args.Contains("--migrate"))
+            return;
 
         app.UseSwagger();
         app.UseSwaggerUI();
@@ -140,19 +144,7 @@ public class Program
         app.UseAuthorization();
         app.MapControllers();
 
-        // Auto-apply migrations.
-        using (var scope = app.Services.CreateScope())
-        {
-            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            if (Environment.GetEnvironmentVariable("IsXUnitTesting") != "True")
-                db.Database.Migrate();
-        }
 
-        // If started only for migrations, exit after success
-        if (args.Contains("--migrate"))
-        {
-            return;
-        }
         app.Run();
     }
 }
