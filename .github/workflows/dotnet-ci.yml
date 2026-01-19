@@ -80,15 +80,14 @@ jobs:
           test -n "$POSTGRES_USER"
           test -n "$POSTGRES_PASSWORD"
           echo "Deploy vars OK: DB=$POSTGRES_DB USER=$POSTGRES_USER"
-          # Pull the exact image we just pushed
           docker pull "$MOBYPARK_API_IMAGE"
           docker compose down || true
 
-          # start both so depends_on: service_healthy is honored
+          # Start db + api using the GHCR image (if env var is set correctly)
           docker compose up -d db api
 
-          # run migrations inside the running api container (no extra container)
+          # Run migrations inside the running api container (no extra containers)
           docker compose exec api dotnet MobyPark-api.dll --migrate
 
-          # optional restart
+          # Restart api (optional)
           docker compose restart api
