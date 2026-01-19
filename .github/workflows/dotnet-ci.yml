@@ -61,8 +61,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # ADD THIS STEP:
-      - uses: actions/setup-dotnet@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
@@ -77,6 +77,10 @@ jobs:
           set -e
           cd /opt/actions-runner-mobypark-runner-03/_work/MobyPark_Project_2526/MobyPark_Project_2526
 
+          # 1. Restore the project so EF can find the 'assets.json' file
+          dotnet restore backend/MobyPark-api/MobyPark-api.csproj
+
+          # 2. Update the .env file for Docker Compose
           cat > .env <<EOF
           POSTGRES_DB=${{ secrets.POSTGRES_DB }}
           POSTGRES_USER=${{ secrets.POSTGRES_USER }}
@@ -84,15 +88,16 @@ jobs:
           MOBYPARK_API_IMAGE=$IMAGE
           EOF
 
+          # 3. Start the database
           docker compose --env-file .env up -d db
 
-          # Install and use the tool using the 'dotnet' command directly
+          # 4. Install EF Tool and update PATH
           dotnet tool install --global dotnet-ef || true
-          
-          # Add the dotnet tools path to the current shell PATH
           export PATH="$PATH:$HOME/.dotnet/tools"
-          
+
+          # 5. Run Migrations
           dotnet ef database update --project backend/MobyPark-api/MobyPark-api.csproj --connection "$DB_CS"
 
+          # 6. Start the API
           docker pull "$IMAGE"
           docker compose --env-file .env up -d api
