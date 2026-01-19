@@ -8,17 +8,17 @@ namespace MobyPark_api.Controllers
 {
     [Authorize]
     [Route("reservations")]
-    public class ReservationController: ControllerBase
+    public class ReservationController : ControllerBase
     {
         private readonly IReservationService _reser;
         public ReservationController(IReservationService reservationService) => _reser = reservationService;
 
         [HttpGet]
-       // [Authorize(Roles = "ADMIN")]
+        // [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> Get(CancellationToken ct)
         {
             ReadReservationDto[] dtos = await _reser.GetAll();
-            if (dtos == null) 
+            if (dtos == null)
                 return NotFound();
             else
                 return Ok(dtos);
@@ -26,13 +26,27 @@ namespace MobyPark_api.Controllers
         }
 
         [HttpGet("{guid}")]
-        public async Task<IActionResult> Get([FromRoute]string guid, CancellationToken ct)
+        public async Task<IActionResult> Get([FromRoute] string guid, CancellationToken ct)
         {
             ReadReservationDto? dto = await _reser.GetById(guid);
             if (dto == null)
                 return NotFound();
             else
                 return Ok(dto);
+        }
+
+        [HttpPost("multi-vehicle")]
+        public async Task<IActionResult> PostMultiVehicle([FromBody] WriteMultiReservationDto dto, CancellationToken ct)
+        {
+            var allowed = await _reser.IsReservationAllowed(dto);
+            if (!allowed.Item1)
+                return BadRequest(allowed.Item2);
+
+            List<ReadReservationDto>? readDto = await _reser.Post(dto);
+            if (readDto == null)
+                return BadRequest();
+
+            return Ok(readDto);
         }
 
         [HttpPost]
@@ -51,7 +65,7 @@ namespace MobyPark_api.Controllers
         }
 
         [HttpPut("{guid}")]
-        public async Task<IActionResult> Put([FromRoute]string guid, [FromBody] WriteReservationDto dto, CancellationToken ct)
+        public async Task<IActionResult> Put([FromRoute] string guid, [FromBody] WriteReservationDto dto, CancellationToken ct)
         {
             var allowed = await _reser.IsReservationAllowed(dto);
             if (!allowed.Item1)
@@ -75,10 +89,10 @@ namespace MobyPark_api.Controllers
                 return Ok(dto);
         }
 
-        [HttpGet("For{plate}/{time}")]
-        public async Task<IActionResult> HasActiveReservation([FromRoute] string licensePlate, [FromRoute] DateTime time)
+        [HttpGet("For/{plate}/{time}")]
+        public async Task<IActionResult> HasActiveReservation([FromRoute] string plate, [FromRoute] DateTime time)
         {
-            ReadReservationDto? dto = await _reser.GetActiveReservation(licensePlate, time);
+            ReadReservationDto? dto = await _reser.GetActiveReservation(plate, time);
             if (dto == null)
                 return NotFound();
             else

@@ -2,15 +2,19 @@
 using Microsoft.Extensions.Hosting;
 using MobyPark_api.Data.Models;
 using MobyPark_api.Dtos.Reservation;
+using MobyPark_api.Enums;
 
 
 public sealed class ReservationService : IReservationService
 {
     private readonly IReservationRepository _reservations;
     private readonly IParkingLotRepository _parkingLots;
+    private readonly IPricingService _pricingService;
+    private readonly IPaymentService _payments;
 
-    public ReservationService(IReservationRepository reservations, IParkingLotRepository parkingLots)
-        => (_reservations, _parkingLots) = (reservations, parkingLots);
+    public ReservationService(IReservationRepository reservations, IParkingLotRepository parkingLots, IPricingService pricing, IPaymentService payments)
+        => (_reservations, _parkingLots, _pricingService, _payments) = (reservations, parkingLots, pricing, payments);
+
 
     public async Task<ReadReservationDto[]> GetAll()
     {
@@ -25,6 +29,29 @@ public sealed class ReservationService : IReservationService
         return ReservationToReadDto(entity);
     }
 
+    public async Task<List<ReadReservationDto>?> Post(WriteMultiReservationDto dto)
+    {
+        List<ReadReservationDto> results = new();
+
+        // Reuse existing single-reservation post per vehicle
+        foreach (var plate in dto.LicensePlates)
+        {
+            var singleDto = new WriteReservationDto
+            {
+                LicensePlate = plate,
+                ParkingLotId = dto.ParkingLotId,
+                StartTime = dto.StartTime,
+                EndTime = dto.EndTime
+            };
+
+            var postedReservation = await Post(singleDto);
+            if (postedReservation != null)
+                results.Add(postedReservation);
+        }
+
+        return results;
+    }
+
     public async Task<ReadReservationDto?> Post(WriteReservationDto dto)
     {
         var lot = await _parkingLots.GetByIdAsync(dto.ParkingLotId);
@@ -34,16 +61,33 @@ public sealed class ReservationService : IReservationService
         {
             LicensePlate = dto.LicensePlate,
             ParkingLotId = dto.ParkingLotId,
-            StartTime = dto.StartTime,
-            EndTime = dto.EndTime,
-            CreatedAt = DateTime.UtcNow,
+            StartTime = dto.StartTime.ToUniversalTime(),
+            EndTime = dto.EndTime.ToUniversalTime(),
+            CreatedAt = DateTime.UtcNow.ToUniversalTime(),
             Status = ReservationStatus.UnUsed,
-            Cost = CalculateReservationCost(dto.StartTime, dto.EndTime, lot)
+            Cost = await CalculateReservationCost(dto.StartTime, dto.EndTime, lot, dto.LicensePlate)
         };
 
         await _reservations.AddAsync(reservation);
         await _reservations.SaveChangesAsync();
 
+        var payment = new AddPaymentDto
+        {
+            Amount = (decimal)reservation.Cost,
+            CreatedAt = DateTime.UtcNow,
+            Status = PaymentStatus.Complete,
+            Hash = null,
+            Transaction = new TransactionDataDto
+            {
+                Amount = (decimal)reservation.Cost,
+                Date = DateTime.UtcNow,
+                Method = "ideal",
+                Issuer = "XYY910HH",
+                Bank = "ABN-NL"
+            }
+        };
+
+        await _payments.AddPaymentAsync(payment);
         return ReservationToReadDto(reservation);
     }
 
@@ -59,9 +103,9 @@ public sealed class ReservationService : IReservationService
 
         reservation.LicensePlate = dto.LicensePlate;
         reservation.ParkingLotId = dto.ParkingLotId;
-        reservation.StartTime = dto.StartTime;
-        reservation.EndTime = dto.EndTime;
-        reservation.Cost = CalculateReservationCost(dto.StartTime, dto.EndTime, lot);
+        reservation.StartTime = dto.StartTime.ToUniversalTime();
+        reservation.EndTime = dto.EndTime.ToUniversalTime();
+        reservation.Cost = await CalculateReservationCost(dto.StartTime, dto.EndTime, lot, dto.LicensePlate);
 
         await _reservations.SaveChangesAsync();
         return ReservationToReadDto(reservation);
@@ -93,9 +137,48 @@ public sealed class ReservationService : IReservationService
         };
     }
 
+    public async Task<(bool, string)> IsReservationAllowed(WriteMultiReservationDto dto)
+    {
+        if (dto.LicensePlates == null || dto.LicensePlates.Length == 0)
+            return (false, "At least one vehicle is required");
+
+        // Validate parking lot once
+        var lot = await _parkingLots.GetByIdAsync(dto.ParkingLotId);
+        if (lot == null)
+            return (false, "Parkinglot ID does not exist in the database");
+
+        // Capacity check INCLUDING number of vehicles
+        if (await WillParkingLotOverflow(
+                dto.StartTime,
+                dto.EndTime,
+                dto.ParkingLotId,
+                baseLoad: dto.LicensePlates.Length - 1))
+        {
+            return (false, "Parkinglot does not have enough capacity for all vehicles");
+        }
+
+        // Reuse existing single-reservation validation per vehicle
+        foreach (var plate in dto.LicensePlates)
+        {
+            var singleDto = new WriteReservationDto
+            {
+                LicensePlate = plate,
+                ParkingLotId = dto.ParkingLotId,
+                StartTime = dto.StartTime,
+                EndTime = dto.EndTime
+            };
+
+            var result = await IsReservationAllowed(singleDto);
+            if (!result.Item1)
+                return result;
+        }
+
+        return (true, "multi reservation allowed");
+    }
+
     public async Task<(bool, string)> IsReservationAllowed(WriteReservationDto dto)
     {
-        if (dto.StartTime.AddMinutes(30) < DateTime.UtcNow)
+        if (dto.StartTime.AddMinutes(30) < DateTime.Now)
             return (false, "Reservation cannot start in the past or within 30 minutes from now");
         if (dto.StartTime >= dto.EndTime)
             return (false, "EndTime is smaller than StartTime");
@@ -110,7 +193,7 @@ public sealed class ReservationService : IReservationService
         if (lot == null)
             return (false, "Parkinglot ID does not exist in the database");
 
-        if (await WillParkingLotOverflow(dto.StartTime, dto.EndTime, dto.ParkingLotId))
+        if (await WillParkingLotOverflow(dto.StartTime.ToUniversalTime(), dto.EndTime.ToUniversalTime(), dto.ParkingLotId))
             return (false, "Parkinglot is full");
 
         return (true, "reservation allowed");
@@ -131,6 +214,7 @@ public sealed class ReservationService : IReservationService
 
     public async Task<ReadReservationDto?> GetActiveReservation(string licensePlate, DateTime time)
     {
+        time = time.ToUniversalTime();
         var entity = await _reservations.GetActiveReservationEntityAsync(licensePlate, time);
         return ReservationToReadDto(entity);
     }
@@ -179,13 +263,9 @@ public sealed class ReservationService : IReservationService
         return max;
     }
 
-    public float CalculateReservationCost(DateTime start, DateTime end, ParkingLot lot)
+    public async Task<decimal> CalculateReservationCost(DateTime start, DateTime end, ParkingLot lot, string licensePlate)
     {
-        var total = end - start;
-        if (total >= TimeSpan.FromDays(1) && lot.DayTariff != null)
-            return total.Days * lot.DayTariff.Value;
-
-        return (int)total.TotalHours * (lot.Tariff ?? 0);
+        return await _pricingService.GetPrice(start, end, lot.Id, licensePlate);
     }
 }
 

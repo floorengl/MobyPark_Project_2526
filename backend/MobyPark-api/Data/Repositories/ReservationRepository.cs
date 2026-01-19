@@ -15,8 +15,8 @@ public sealed class ReservationRepository : GenericRepository<Reservation, Guid>
         => _db.Reservations
             .FirstOrDefaultAsync(r =>
                 r.LicensePlate == licensePlate &&
-                r.StartTime < time &&
-                r.EndTime > time &&
+                r.StartTime <= time &&
+                r.EndTime >= time &&
                 r.Status == ReservationStatus.UnUsed, ct);
 
     public async Task<(DateTime start, DateTime end)[]> GetOverlappingUnusedIntervalsAsync(
