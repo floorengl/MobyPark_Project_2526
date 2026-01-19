@@ -72,19 +72,17 @@ jobs:
           set -e
           cd /opt/actions-runner-mobypark-runner-03/_work/MobyPark_Project_2526/MobyPark_Project_2526
 
-          # Make sure secrets exist
           test -n "$POSTGRES_DB"
           test -n "$POSTGRES_USER"
           test -n "$POSTGRES_PASSWORD"
           test -n "$IMAGE"
 
-          # Write env for docker compose interpolation
           cat > .env <<EOF
-  POSTGRES_DB=$POSTGRES_DB
-  POSTGRES_USER=$POSTGRES_USER
-  POSTGRES_PASSWORD=$POSTGRES_PASSWORD
-  MOBYPARK_API_IMAGE=$IMAGE
-  EOF
+          POSTGRES_DB=$POSTGRES_DB
+          POSTGRES_USER=$POSTGRES_USER
+          POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+          MOBYPARK_API_IMAGE=$IMAGE
+          EOF
 
           docker pull "$IMAGE"
           docker compose --env-file .env down || true
