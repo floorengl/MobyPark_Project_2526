@@ -71,16 +71,14 @@ jobs:
 
       - name: Deploy and Migrate
         env:
-          IMAGE: ghcr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           DB_CS: "Host=localhost;Port=5434;Database=${{ secrets.POSTGRES_DB }};Username=${{ secrets.POSTGRES_USER }};Password=${{ secrets.POSTGRES_PASSWORD }}"
         run: |
           set -e
           cd /opt/actions-runner-mobypark-runner-03/_work/MobyPark_Project_2526/MobyPark_Project_2526
 
-          # 1. Restore the project so EF can find the 'assets.json' file
+          # 1. Prepare Environment & Restore
           dotnet restore backend/MobyPark-api/MobyPark-api.csproj
-
-          # 2. Update the .env file for Docker Compose
           cat > .env <<EOF
           POSTGRES_DB=${{ secrets.POSTGRES_DB }}
           POSTGRES_USER=${{ secrets.POSTGRES_USER }}
@@ -88,16 +86,20 @@ jobs:
           MOBYPARK_API_IMAGE=$IMAGE
           EOF
 
-          # 3. Start the database
-          docker compose --env-file .env up -d db
+          # 2. SHUT DOWN everything to ensure a clean replacement
+          docker compose --env-file .env down
 
-          # 4. Install EF Tool and update PATH
+          # 3. Start ONLY the database and wait for it to be ready
+          docker compose --env-file .env up -d db
+          
+          # 4. Run Migrations from the runner
           dotnet tool install --global dotnet-ef || true
           export PATH="$PATH:$HOME/.dotnet/tools"
-
-          # 5. Run Migrations
           dotnet ef database update --project backend/MobyPark-api/MobyPark-api.csproj --connection "$DB_CS"
 
-          # 6. Start the API
+          # 5. Pull the new image and start the API
           docker pull "$IMAGE"
           docker compose --env-file .env up -d api
+
+          # 6. Cleanup
+          docker image prune -f
