@@ -67,31 +67,27 @@ jobs:
       - name: Deploy and Migrate
         env:
           IMAGE: ghcr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
-          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          # Use Localhost because the Runner is outside the Docker network
+          DB_CS: "Host=localhost;Port=5434;Database=${{ secrets.POSTGRES_DB }};Username=${{ secrets.POSTGRES_USER }};Password=${{ secrets.POSTGRES_PASSWORD }}"
         run: |
           set -e
-          # Move to your project directory
           cd /opt/actions-runner-mobypark-runner-03/_work/MobyPark_Project_2526/MobyPark_Project_2526
 
-          # 1. Create the .env file so Docker Compose knows which image to use
+          # Create the .env file from GitHub Secrets so Docker Compose can use them
           cat > .env <<EOF
-          POSTGRES_DB=$POSTGRES_DB
-          POSTGRES_USER=$POSTGRES_USER
-          POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+          POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+          POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
           MOBYPARK_API_IMAGE=$IMAGE
           EOF
 
-          # 2. Start ONLY the database first and wait for it to be ready
+          # Start ONLY the database first
           docker compose --env-file .env up -d db
-          
-          # 3. Run migrations from the runner 
-          # We use localhost:5434 because the runner is outside the docker network
-          export CONNECTION="Host=localhost;Port=5434;Database=$POSTGRES_DB;Username=$POSTGRES_USER;Password=$POSTGRES_PASSWORD"
-          dotnet tool install --global dotnet-ef || true
-          /home/runner/.dotnet/tools/dotnet-ef database update --project backend/MobyPark-api/MobyPark-api.csproj --connection "$CONNECTION"
 
-          # 4. Now pull and start the API
+          # Apply migrations manually from the runner to ensure they are done BEFORE the API starts
+          dotnet tool install --global dotnet-ef || true
+          /home/runner/.dotnet/tools/dotnet-ef database update --project backend/MobyPark-api/MobyPark-api.csproj --connection "$DB_CS"
+
+          # Now start the API
           docker pull "$IMAGE"
           docker compose --env-file .env up -d api
