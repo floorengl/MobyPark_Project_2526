@@ -19,7 +19,16 @@ public class Program
 
         // EF Core (PostgreSQL)
         builder.Services.AddDbContext<AppDbContext>(opt =>
-            opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+        {
+            var cs = builder.Configuration.GetConnectionString("DefaultConnection")!;
+
+            // If NOT running inside Docker, use localhost + published port
+            if (!File.Exists("/.dockerenv"))
+                cs = cs.Replace("Host=db", "Host=localhost").Replace("Port=5432", "Port=5434");
+
+            opt.UseNpgsql(cs);
+        });
+
 
         // Services
         builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
@@ -130,6 +139,11 @@ public class Program
                 db.Database.Migrate();
         }
 
+        // If started only for migrations, exit after success
+        if (args.Contains("--migrate"))
+        {
+            return;
+        }
         app.Run();
     }
 }

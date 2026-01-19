@@ -80,5 +80,14 @@ jobs:
           test -n "$POSTGRES_USER"
           test -n "$POSTGRES_PASSWORD"
           echo "Deploy vars OK: DB=$POSTGRES_DB USER=$POSTGRES_USER"
+          # Start only DB first
+          # IMPORTANT: always pull the exact pushed image
+          docker pull "$MOBYPARK_API_IMAGE"
+          # stop old containers (keep volumes/data)
           docker compose down || true
-          docker compose up -d
+          # start db first
+          docker compose up -d db
+          # run migrations once (no --rm, as you requested)
+          docker compose run api --migrate
+          # start api
+          docker compose up -d api
