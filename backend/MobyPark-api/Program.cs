@@ -123,10 +123,6 @@ public class Program
                 db.Database.Migrate();
         }
 
-        // ✅ If started only for migrations, exit NOW (no port binding)
-        if (args.Contains("--migrate"))
-            return;
-
         app.UseSwagger();
         app.UseSwaggerUI();
         // Conditionally enable HTTPS redirection
