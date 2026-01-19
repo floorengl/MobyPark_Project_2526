@@ -107,7 +107,11 @@ public class Program
 
         app.UseSwagger();
         app.UseSwaggerUI();
-        // app.UseHttpsRedirection(); // comment for http local tests
+        // Conditionally enable HTTPS redirection
+        if (Environment.GetEnvironmentVariable("USE_HTTPS") == "true")
+        {
+            app.UseHttpsRedirection();
+        }
         app.UseAuthentication();
         app.UseAuthorization();
         app.MapControllers();

@@ -16,7 +16,9 @@ services:
       retries: 20
 
   api:
-    image: ${MOBYPARK_API_IMAGE}
+    build:
+      context: ./backend/MobyPark-api
+      dockerfile: Dockerfile
     depends_on:
       db:
         condition: service_healthy
@@ -24,8 +26,10 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+      USE_HTTPS: ${USE_HTTPS:-false}
     ports:
       - "8333:80"
+      - "8443:5001"
 
 volumes:
   db_data:

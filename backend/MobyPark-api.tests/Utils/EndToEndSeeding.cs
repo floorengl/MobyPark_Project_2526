@@ -16,47 +16,53 @@ namespace MobyPark_api.tests.Utils
         internal static async Task<HttpClient> LoginWithUser1(WholeAppFixture appFixture)
         {
             var account = new Dictionary<string, string>
-        {
-            { "username", "user1" },
-            { "password", "password123-" }
-        };
+            {
+                { "username", "user1" },
+                { "password", "password123-" }
+            };
 
             var client = appFixture.CreateClient();
             var createContent = JsonContent.Create(account);
 
-
             var loginResponse = await client.PostAsync("login", createContent);
-
-            var loginJson = await loginResponse.Content.ReadFromJsonAsync<JsonElement>();
-            string jwt = loginJson.GetProperty("token").GetProperty("accessToken").GetString()!;
-
-
-            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwt);
-
-            return client;
+            string responseContent = await loginResponse.Content.ReadAsStringAsync();
+            try
+            {
+                var loginJson = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                string jwt = loginJson.GetProperty("token").GetProperty("accessToken").GetString()!;
+                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwt);
+                return client;
+            }
+            catch (JsonException)
+            {
+                throw new Exception($"LoginWithUser1: Unexpected response from /login: {responseContent}");
+            }
         }
 
         internal static async Task<HttpClient> LoginWithAdmin(WholeAppFixture appFixture)
         {
             var account = new Dictionary<string, string>
-        {
-            { "username", "admin1" },
-            { "password", "password123-" }
-        };
+            {
+                { "username", "admin1" },
+                { "password", "password123-" }
+            };
 
             var client = appFixture.CreateClient();
             var createContent = JsonContent.Create(account);
 
-
             var loginResponse = await client.PostAsync("login", createContent);
-
-            var loginJson = await loginResponse.Content.ReadFromJsonAsync<JsonElement>();
-            string jwt = loginJson.GetProperty("token").GetProperty("accessToken").GetString()!;
-
-
-            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwt);
-
-            return client;
+            string responseContent = await loginResponse.Content.ReadAsStringAsync();
+            try
+            {
+                var loginJson = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                string jwt = loginJson.GetProperty("token").GetProperty("accessToken").GetString()!;
+                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwt);
+                return client;
+            }
+            catch (JsonException)
+            {
+                throw new Exception($"LoginWithAdmin: Unexpected response from /login: {responseContent}");
+            }
         }
 
         /// <summary>

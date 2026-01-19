@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using MobyPark_api.Data.Models;
 using MobyPark_api.Dtos;
+using MobyPark_api.tests.Utils;
 
 namespace MobyPark_api.tests.EndToEndTests
 {
@@ -66,8 +67,8 @@ namespace MobyPark_api.tests.EndToEndTests
 
         [Fact]
         public async Task CanDeleteLicenseplate()
-        {  
-            // Reset DB and create test Licenseplate
+        {
+            // Arrange: Reset DB and create a test license plate
             await _appfixture.ResetDB();
             var lotId = await MakeTestParkingLotAsync();
 
@@ -81,44 +82,16 @@ namespace MobyPark_api.tests.EndToEndTests
             var createResponse = await client.PostAsync("licenseplate", JsonContent.Create(payload));
             Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
 
-            //Create test admin
-            using (var scope = _appfixture.Services.CreateScope())
-            {
-                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                var admin = new User
-                {
-                    Username = "admin",
-                    Password = "adminpassword",
-                    Role = "ADMIN"
-                };
-                db.Users.Add(admin);
-                await db.SaveChangesAsync();
-            }
-
-            //Login as admin
-            var loginPayload = new Dictionary<string, string>
-            {
-                { "username", "admin" },
-                { "password", "adminpassword" }
-            };
-            var loginResponse = await client.PostAsync("login", JsonContent.Create(loginPayload));
-            Assert.Equal(HttpStatusCode.OK, loginResponse.StatusCode);
-            var loginJson = await loginResponse.Content.ReadFromJsonAsync<JsonElement>();
-            string jwt = loginJson.GetProperty("token").GetProperty("accessToken").GetString()!;
-
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwt);
-
-            //Delete Licenseplate
-            var deleteResponse = await client.DeleteAsync($"licenseplate/{payload.LicensePlateName}");
+            // Act: Login as admin and delete the license plate
+            var adminClient = await EndToEndSeeding.LoginWithAdmin(_appfixture);
+            var deleteResponse = await adminClient.DeleteAsync($"licenseplate/{payload.LicensePlateName}");
             Assert.Equal(HttpStatusCode.NoContent, deleteResponse.StatusCode);
 
-            //Verify Licenseplate is deleted
-            using (var scope = _appfixture.Services.CreateScope())
-            {
-                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                var stored = await db.LicensePlates.SingleOrDefaultAsync(p => p.LicensePlateName == payload.LicensePlateName);
-                Assert.NotNull(stored);
-            }
+            // Assert: Verify the license plate is deleted from the database
+            using var scope = _appfixture.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var stored = await db.LicensePlates.SingleOrDefaultAsync(p => p.LicensePlateName == payload.LicensePlateName);
+            Assert.Null(stored);
         }
 
         [Fact]
