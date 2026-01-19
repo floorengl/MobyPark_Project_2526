@@ -61,19 +61,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # ADD THIS STEP:
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
       - name: Login to GitHub Container Registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Deploy and Migrate
         env:
           IMAGE: ghcr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
-          # Use Localhost because the Runner is outside the Docker network
           DB_CS: "Host=localhost;Port=5434;Database=${{ secrets.POSTGRES_DB }};Username=${{ secrets.POSTGRES_USER }};Password=${{ secrets.POSTGRES_PASSWORD }}"
         run: |
           set -e
           cd /opt/actions-runner-mobypark-runner-03/_work/MobyPark_Project_2526/MobyPark_Project_2526
 
-          # Create the .env file from GitHub Secrets so Docker Compose can use them
           cat > .env <<EOF
           POSTGRES_DB=${{ secrets.POSTGRES_DB }}
           POSTGRES_USER=${{ secrets.POSTGRES_USER }}
@@ -81,13 +84,15 @@ jobs:
           MOBYPARK_API_IMAGE=$IMAGE
           EOF
 
-          # Start ONLY the database first
           docker compose --env-file .env up -d db
 
-          # Apply migrations manually from the runner to ensure they are done BEFORE the API starts
+          # Install and use the tool using the 'dotnet' command directly
           dotnet tool install --global dotnet-ef || true
-          /home/runner/.dotnet/tools/dotnet-ef database update --project backend/MobyPark-api/MobyPark-api.csproj --connection "$DB_CS"
+          
+          # Add the dotnet tools path to the current shell PATH
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          
+          dotnet ef database update --project backend/MobyPark-api/MobyPark-api.csproj --connection "$DB_CS"
 
-          # Now start the API
           docker pull "$IMAGE"
           docker compose --env-file .env up -d api
