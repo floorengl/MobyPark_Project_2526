@@ -82,6 +82,8 @@ namespace MobyPark_api.tests.EndToEndTests
             var createResponse = await client.PostAsync("licenseplate", JsonContent.Create(payload));
             Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
 
+            await EndToEndSeeding.SeedDatabase(_appfixture);
+
             // Act: Login as admin and delete the license plate
             var adminClient = await EndToEndSeeding.LoginWithAdmin(_appfixture);
             var deleteResponse = await adminClient.DeleteAsync($"licenseplate/{payload.LicensePlateName}");

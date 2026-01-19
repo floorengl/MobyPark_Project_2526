@@ -26,7 +26,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
-      USE_HTTPS: ${USE_HTTPS:-false}
+      USE_HTTPS: ${USE_HTTPS:-true}
     ports:
       - "8333:80"
       - "8443:5001"
