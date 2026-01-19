@@ -65,7 +65,20 @@ jobs:
       - name: Deploy artifact
         env:
           IMAGE: ghcr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         run: |
-          export MOBYPARK_API_IMAGE=$IMAGE
+          set -e
+          cd /opt/actions-runner-mobypark-runner-03/_work/MobyPark_Project_2526/MobyPark_Project_2526
+
+          export MOBYPARK_API_IMAGE="$IMAGE"
+          export POSTGRES_DB="$POSTGRES_DB"
+          export POSTGRES_USER="$POSTGRES_USER"
+          export POSTGRES_PASSWORD="$POSTGRES_PASSWORD"
+          test -n "$POSTGRES_DB"
+          test -n "$POSTGRES_USER"
+          test -n "$POSTGRES_PASSWORD"
+          echo "Deploy vars OK: DB=$POSTGRES_DB USER=$POSTGRES_USER"
           docker compose down || true
           docker compose up -d
