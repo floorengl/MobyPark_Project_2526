@@ -84,10 +84,4 @@ jobs:
           docker compose down || true
 
           # Start db + api using the GHCR image (if env var is set correctly)
-          docker compose up -d db api
-
-          # Run migrations inside the running api container (no extra containers)
-          docker compose exec api dotnet MobyPark-api.dll --migrate
-
-          # Restart api (optional)
-          docker compose restart api
+          docker compose up -d
