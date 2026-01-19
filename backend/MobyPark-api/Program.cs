@@ -117,10 +117,27 @@ public class Program
         // If started only for migrations, run them and exit BEFORE app.Run()
         using (var scope = app.Services.CreateScope())
         {
-            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var services = scope.ServiceProvider;
+            var logger = services.GetRequiredService<ILogger<Program>>();
+            var db = services.GetRequiredService<AppDbContext>();
 
-            if (Environment.GetEnvironmentVariable("IsXUnitTesting") != "True")
-                db.Database.Migrate();
+            // Retry 5 times with a 3-second delay between attempts
+            for (int i = 0; i < 5; i++)
+            {
+                try
+                {
+                    logger.LogInformation("Attempting to run migrations...");
+                    db.Database.Migrate();
+                    logger.LogInformation("Migrations applied successfully.");
+                    break; 
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning($"Migration attempt {i + 1} failed: {ex.Message}");
+                    if (i == 4) throw; // Rethrow if it's the last attempt
+                    Thread.Sleep(3000); // Wait 3 seconds
+                }
+            }
         }
 
         app.UseSwagger();

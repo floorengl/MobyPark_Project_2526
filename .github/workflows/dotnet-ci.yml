@@ -54,36 +54,44 @@ jobs:
           docker push $IMAGE
 
 
-  deploy:
-    needs: build-and-push-image
-    runs-on: [self-hosted, linux, x64, mobypark]
+    deploy:
+      needs: build-and-push-image
+      runs-on: [self-hosted, linux, x64, mobypark]
 
-    steps:
-      - name: Login to GitHub Container Registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      steps:
+        - uses: actions/checkout@v4
 
-      - name: Deploy artifact
-        env:
-          IMAGE: ghcr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
-          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-        run: |
-          set -e
-          cd /opt/actions-runner-mobypark-runner-03/_work/MobyPark_Project_2526/MobyPark_Project_2526
+        - name: Login to GitHub Container Registry
+          run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-          test -n "$POSTGRES_DB"
-          test -n "$POSTGRES_USER"
-          test -n "$POSTGRES_PASSWORD"
-          test -n "$IMAGE"
+        - name: Deploy and Migrate
+          env:
+            IMAGE: ghcr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+            POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+            POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          run: |
+            set -e
+            # Move to your project directory
+            cd /opt/actions-runner-mobypark-runner-03/_work/MobyPark_Project_2526/MobyPark_Project_2526
 
-          cat > .env <<EOF
-          POSTGRES_DB=$POSTGRES_DB
-          POSTGRES_USER=$POSTGRES_USER
-          POSTGRES_PASSWORD=$POSTGRES_PASSWORD
-          MOBYPARK_API_IMAGE=$IMAGE
-          EOF
+            # 1. Create the .env file so Docker Compose knows which image to use
+            cat > .env <<EOF
+            POSTGRES_DB=$POSTGRES_DB
+            POSTGRES_USER=$POSTGRES_USER
+            POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+            MOBYPARK_API_IMAGE=$IMAGE
+            EOF
 
-          docker pull "$IMAGE"
-          docker compose --env-file .env down || true
-          docker compose --env-file .env up -d
+            # 2. Start ONLY the database first and wait for it to be ready
+            docker compose --env-file .env up -d db
+            
+            # 3. Run migrations from the runner 
+            # We use localhost:5434 because the runner is outside the docker network
+            export CONNECTION="Host=localhost;Port=5434;Database=$POSTGRES_DB;Username=$POSTGRES_USER;Password=$POSTGRES_PASSWORD"
+            dotnet tool install --global dotnet-ef || true
+            /home/runner/.dotnet/tools/dotnet-ef database update --project backend/MobyPark-api/MobyPark-api.csproj --connection "$CONNECTION"
+
+            # 4. Now pull and start the API
+            docker pull "$IMAGE"
+            docker compose --env-file .env up -d api
