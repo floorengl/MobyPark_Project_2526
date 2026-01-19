@@ -1,0 +1,6 @@
+services:
+  api:
+    build:
+      context: backend/MobyPark-api
+      dockerfile: Dockerfile
+    image: mobypark-api:local
