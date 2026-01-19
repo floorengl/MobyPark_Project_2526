@@ -23,10 +23,10 @@ services:
     restart: on-failure
     environment:
       ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
-      ASPNETCORE_URLS: "http://+:80"
+      ASPNETCORE_URLS: "http://+:8080"
       USE_HTTPS: "false"
     ports:
-      - "8333:80"
+      - "8333:8080"
       - "8443:5001"
 
 
