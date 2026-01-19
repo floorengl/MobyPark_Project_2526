@@ -108,21 +108,27 @@ public class Program
         app.UseSwagger();
         app.UseSwaggerUI();
         // Conditionally enable HTTPS redirection
-        if (Environment.GetEnvironmentVariable("USE_HTTPS") == "true")
+        var useHttps = string.Equals(
+            Environment.GetEnvironmentVariable("USE_HTTPS"),
+            "true",
+            StringComparison.OrdinalIgnoreCase);
+
+        if (useHttps)
         {
             app.UseHttpsRedirection();
         }
+
         app.UseAuthentication();
         app.UseAuthorization();
         app.MapControllers();
 
         // Auto-apply migrations.
-        // using (var scope = app.Services.CreateScope())
-        // {
-        //     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        //     if (Environment.GetEnvironmentVariable("IsXUnitTesting") != "True")
-        //         db.Database.Migrate();
-        // }
+        using (var scope = app.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            if (Environment.GetEnvironmentVariable("IsXUnitTesting") != "True")
+                db.Database.Migrate();
+        }
 
         app.Run();
     }
