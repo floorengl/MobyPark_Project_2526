@@ -114,6 +114,15 @@ public class Program
 
         var app = builder.Build();
 
+        // If started only for migrations, run them and exit BEFORE app.Run()
+        if (args.Contains("--migrate"))
+        {
+            using var scope = app.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            db.Database.Migrate();
+            return;
+        }
+
         app.UseSwagger();
         app.UseSwaggerUI();
         // Conditionally enable HTTPS redirection
