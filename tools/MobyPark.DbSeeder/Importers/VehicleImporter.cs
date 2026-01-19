@@ -66,7 +66,6 @@ public static class VehicleImporter
             if (vehicle == null)
             {
                 db.Vehicles.Add(new Vehicle{
-                    Id = id,
                     LicensePlate = licensePlate,
                     Make = make,
                     Model = model,

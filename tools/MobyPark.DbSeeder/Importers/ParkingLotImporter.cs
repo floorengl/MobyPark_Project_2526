@@ -68,7 +68,6 @@ public static class ParkingLotImporter
             {
                 db.ParkingLots.Add(new ParkingLot
                 {
-                    Id = id,
                     Name = name,
                     Location = location,
                     Address = address,
