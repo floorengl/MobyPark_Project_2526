@@ -171,7 +171,6 @@ public class Program
 
             if (!db.Users.Any(u => u.Username == "InitialAdmin"))
             {
-                Console.WriteLine("No users with name InitialAdmin found. Creating a default admin. Use this account to register a new admin (wih secret password) then set this initial admin to active == false");
                 var hasher = new PasswordHasher<User>();
                 var user = new User { Username = "InitialAdmin", Role = "ADMIN", Active = true };
                 user.Password = hasher.HashPassword(user, "InitialAdminPassword");
