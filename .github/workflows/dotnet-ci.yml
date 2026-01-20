@@ -76,8 +76,7 @@ jobs:
         run: |
           set -e
           cd /opt/actions-runner-mobypark-runner-03/_work/MobyPark_Project_2526/MobyPark_Project_2526
-
-          # 1. Prepare Environment & Restore
+          # Prepare Environment & Restore
           dotnet restore backend/MobyPark-api/MobyPark-api.csproj
           cat > .env <<EOF
           POSTGRES_DB=${{ secrets.POSTGRES_DB }}
@@ -85,21 +84,16 @@ jobs:
           POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
           MOBYPARK_API_IMAGE=$IMAGE
           EOF
-
-          # 2. SHUT DOWN everything to ensure a clean replacement
+          # Shut down everything to ensure a clean replacement
           docker compose --env-file .env down
-
-          # 3. Start ONLY the database and wait for it to be ready
+          # Start only the database and wait for it to be ready
           docker compose --env-file .env up -d db
-          
-          # 4. Run Migrations from the runner
+          # Run Migrations from the runner
           dotnet tool install --global dotnet-ef || true
           export PATH="$PATH:$HOME/.dotnet/tools"
           dotnet ef database update --project backend/MobyPark-api/MobyPark-api.csproj --connection "$DB_CS"
-
-          # 5. Pull the new image and start the API
+          # Pull the new image and start the API
           docker pull "$IMAGE"
           docker compose --env-file .env up -d api
-
-          # 6. Cleanup
+          # Cleanup
           docker image prune -f
