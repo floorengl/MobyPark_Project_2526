@@ -117,12 +117,22 @@ public class Program
         app.MapControllers();
 
         // Auto-apply migrations.
-        // using (var scope = app.Services.CreateScope())
-        // {
-        //     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        //     if (Environment.GetEnvironmentVariable("IsXUnitTesting") != "True")
-        //         db.Database.Migrate();
-        // }
+        using (var scope = app.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            //if (Environment.GetEnvironmentVariable("IsXUnitTesting") != "True")
+            //    db.Database.Migrate();
+
+            if (!db.Users.Any(u => u.Username == "InitialAdmin"))
+            {
+                Console.WriteLine("No users with name InitialAdmin found. Creating a default admin. Use this account to register a new admin (wih secret password) then set this initial admin to active == false");
+                var hasher = new PasswordHasher<User>();
+                var user = new User { Username = "InitialAdmin", Role = "ADMIN", Active = true };
+                user.Password = hasher.HashPassword(user, "InitialAdminPassword");
+                db.Users.Add(user);
+                db.SaveChanges();
+            }
+        }
 
         app.Run();
     }
