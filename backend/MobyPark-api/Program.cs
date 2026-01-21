@@ -115,7 +115,7 @@ public class Program
         var app = builder.Build();
 
         // If started only for migrations, run them and exit BEFORE app.Run()
-        var isTesting = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Testing" 
+        var isTesting = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Testing"
                      || Environment.GetEnvironmentVariable("IsXUnitTesting") == "True";
 
         if (!isTesting)
@@ -133,13 +133,13 @@ public class Program
                         logger.LogInformation("Attempting to run migrations...");
                         db.Database.Migrate();
                         logger.LogInformation("Migrations applied successfully.");
-                        break; 
+                        break;
                     }
                     catch (Exception ex)
                     {
                         logger.LogWarning($"Migration attempt {i + 1} failed: {ex.Message}");
-                        if (i == 4) throw; 
-                        Thread.Sleep(3000); 
+                        if (i == 4) throw;
+                        Thread.Sleep(3000);
                     }
                 }
             }
@@ -162,6 +162,22 @@ public class Program
         app.UseAuthorization();
         app.MapControllers();
 
+        // Auto-apply migrations.
+        using (var scope = app.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            //if (Environment.GetEnvironmentVariable("IsXUnitTesting") != "True")
+            //    db.Database.Migrate();
+
+            if (!db.Users.Any(u => u.Username == "InitialAdmin"))
+            {
+                var hasher = new PasswordHasher<User>();
+                var user = new User { Username = "InitialAdmin", Role = "ADMIN", Active = true };
+                user.Password = hasher.HashPassword(user, "InitialAdminPassword");
+                db.Users.Add(user);
+                db.SaveChanges();
+            }
+        }
 
         app.Run();
     }
