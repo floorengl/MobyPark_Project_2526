@@ -166,17 +166,17 @@ public class Program
         using (var scope = app.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            //if (Environment.GetEnvironmentVariable("IsXUnitTesting") != "True")
-            //    db.Database.Migrate();
-
-            if (!db.Users.Any(u => u.Username == "InitialAdmin"))
-            {
-                var hasher = new PasswordHasher<User>();
-                var user = new User { Username = "InitialAdmin", Role = "ADMIN", Active = true };
-                user.Password = hasher.HashPassword(user, "InitialAdminPassword");
-                db.Users.Add(user);
-                db.SaveChanges();
-            }
+            // Delete any existing admin rows (just in case there are duplicates).
+            var existingAdmins = db.Users.Where(u => u.Username == "InitialAdmin");
+            db.Users.RemoveRange(existingAdmins);
+            db.SaveChanges();
+            // Recreate the admin.
+            var hasher = new PasswordHasher<User>();
+            var user = new User { Username = "InitialAdmin", Role = "ADMIN", Active = true };
+            user.Password = hasher.HashPassword(user, "InitialAdminPassword");
+            // Add the admin and save the changes.
+            db.Users.Add(user);
+            db.SaveChanges();
         }
 
         app.Run();
