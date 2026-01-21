@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
@@ -126,5 +127,33 @@ namespace MobyPark_api.tests.Utils
 
             return lotId;
         }
+
+        public static async Task<HttpClient> LoginWithVehicleUser(WholeAppFixture appFixture)
+        {
+            var client = appFixture.CreateClient();
+
+            // Ensure user exists
+            var registerDto = new { username = "user1", password = "P@ssword123" };
+            var registerContent = JsonContent.Create(registerDto);
+            var registerResponse = await client.PostAsync("register", registerContent);
+
+            // It's okay if user already exists
+            if (registerResponse.StatusCode != HttpStatusCode.Created &&
+                registerResponse.StatusCode != HttpStatusCode.Conflict)
+                registerResponse.EnsureSuccessStatusCode();
+
+            // Login
+            var loginResponse = await client.PostAsync("login", JsonContent.Create(registerDto));
+            loginResponse.EnsureSuccessStatusCode(); // throws if login fails
+
+            var loginJson = await loginResponse.Content.ReadFromJsonAsync<JsonElement>();
+            string jwt = loginJson.GetProperty("token").GetProperty("accessToken").GetString()!;
+
+            client.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwt);
+
+            return client;
+        }
+
     }
 }
