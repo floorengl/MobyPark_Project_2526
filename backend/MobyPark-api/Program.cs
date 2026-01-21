@@ -162,22 +162,27 @@ public class Program
         app.UseAuthorization();
         app.MapControllers();
 
-        // Auto-apply migrations.
-        using (var scope = app.Services.CreateScope())
+        if (args.Contains("--seed-admin"))
         {
-            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            // Delete any existing admin rows (just in case there are duplicates).
-            var existingAdmins = db.Users.Where(u => u.Username == "InitialAdmin");
-            db.Users.RemoveRange(existingAdmins);
-            db.SaveChanges();
-            // Recreate the admin.
-            var hasher = new PasswordHasher<User>();
-            var user = new User { Username = "InitialAdmin", Role = "ADMIN", Active = true };
-            user.Password = hasher.HashPassword(user, "InitialAdminPassword");
-            // Add the admin and save the changes.
-            db.Users.Add(user);
-            db.SaveChanges();
+            // Auto-apply migrations.
+            using (var scope = app.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                // Delete any existing admin rows (just in case there are duplicates).
+                var existingAdmins = db.Users.Where(u => u.Username == "InitialAdmin");
+                db.Users.RemoveRange(existingAdmins);
+                db.SaveChanges();
+                // Recreate the admin.
+                var hasher = new PasswordHasher<User>();
+                var user = new User { Username = "InitialAdmin", Role = "ADMIN", Active = true };
+                user.Password = hasher.HashPassword(user, "InitialAdminPassword");
+                // Add the admin and save the changes.
+                db.Users.Add(user);
+                db.SaveChanges();
+            }
+            return;
         }
+        
 
         app.Run();
     }

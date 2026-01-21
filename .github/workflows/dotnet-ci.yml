@@ -92,6 +92,8 @@ jobs:
           dotnet tool install --global dotnet-ef || true
           export PATH="$PATH:$HOME/.dotnet/tools"
           dotnet ef database update --project backend/MobyPark-api/MobyPark-api.csproj --connection "$DB_CS"
+          # Seed default admin.
+          dotnet run --project backend/MobyPark-api/MobyPark-api.csproj -- --seed-admin
           # Pull the new image and start the API
           docker pull "$IMAGE"
           docker compose --env-file .env up -d api
