@@ -1,21 +1,26 @@
-name: .NET CI
+name: .NET CI/CD
 
 on:
   push:
     branches: [ main ]
   pull_request:
+    branches: [ main ]
 
 permissions:
   contents: read
+  packages: write
 
 env:
   DOTNET_VERSION: '9.0.x'
-  TEST_PROJECT: backend/MobyPark-api.tests/MobyPark-api.tests.csproj
   SOLUTION: MobyPark_Project_2526.sln
+  TEST_PROJECT: backend/MobyPark-api.tests/MobyPark-api.tests.csproj
+  REGISTRY: ghcr.io
+  IMAGE_NAME: floorengl/mobypark_project_2526/mobypark-api
 
 jobs:
   build-and-test:
     runs-on: [self-hosted, linux, x64, mobypark]
+
     steps:
       - uses: actions/checkout@v4
 
@@ -26,27 +31,75 @@ jobs:
       - name: Restore
         run: dotnet restore "${{ env.SOLUTION }}"
 
-      - name: Build (Release)
-        run: dotnet build "${{ env.SOLUTION }}" --configuration Release --no-restore
+      - name: Build
+        run: dotnet build "${{ env.SOLUTION }}" -c Release --no-restore
 
       - name: Test
-        run: dotnet test "${{ env.SOLUTION }}" --configuration Release --no-build --logger "trx;LogFileName=test_results.trx"
+        run: dotnet test "${{ env.TEST_PROJECT }}" -c Release --no-build
 
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: '**/test_results.trx'
-
-  deploy:
+  build-and-push-image:
     needs: build-and-test
     runs-on: [self-hosted, linux, x64, mobypark]
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Deployment
-        run: |
-          docker compose down -v || true
-          docker compose up -d --build
+      - name: Login to GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
+      - name: Build and push Docker image
+        run: |
+          IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          docker build -f backend/MobyPark-api/Dockerfile -t $IMAGE backend/MobyPark-api
+          docker push $IMAGE
+
+
+  deploy:
+    needs: build-and-push-image
+    runs-on: [self-hosted, linux, x64, mobypark]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Login to GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Deploy and Migrate
+        env:
+          IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          DB_CS: "Host=localhost;Port=5434;Database=${{ secrets.POSTGRES_DB }};Username=${{ secrets.POSTGRES_USER }};Password=${{ secrets.POSTGRES_PASSWORD }}"
+        run: |
+          set -e
+          cd /opt/actions-runner-mobypark-runner-03/_work/MobyPark_Project_2526/MobyPark_Project_2526
+
+          # 1. Prepare Environment & Restore
+          dotnet restore backend/MobyPark-api/MobyPark-api.csproj
+          cat > .env <<EOF
+          POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+          POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+          MOBYPARK_API_IMAGE=$IMAGE
+          EOF
+
+          # 2. SHUT DOWN everything to ensure a clean replacement
+          docker compose --env-file .env down
+
+          # 3. Start ONLY the database and wait for it to be ready
+          docker compose --env-file .env up -d db
+          
+          # 4. Run Migrations from the runner
+          dotnet tool install --global dotnet-ef || true
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          dotnet ef database update --project backend/MobyPark-api/MobyPark-api.csproj --connection "$DB_CS"
+
+          # 5. Pull the new image and start the API
+          docker pull "$IMAGE"
+          docker compose --env-file .env up -d api
+
+          # 6. Cleanup
+          docker image prune -f

@@ -4,12 +4,14 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.VisualBasic;
 using MobyPark_api.Data;
 using MobyPark_api.Data.Models;
+using Microsoft.EntityFrameworkCore;
+
 
 namespace MobyPark.DbSeeder.Importers;
 
 public static class VehicleImporter
 {
-    public static void Import(AppDbContext db, string basePath)
+    public static async Task ImportAsync(AppDbContext db, string basePath)
     {
         // Checking if the json file exists.
         var path = Path.Combine(basePath, "vehicles.json");
@@ -20,7 +22,8 @@ public static class VehicleImporter
         }
 
         // Variables.
-        var doc = JsonDocument.Parse(File.ReadAllText(path));
+        await using var fs = File.OpenRead(path);
+        var doc = await JsonDocument.ParseAsync(fs);
         int inserted = 0, updated = 0, skipped = 0;
         var skipReasons = new List<string>();
 
@@ -57,13 +60,12 @@ public static class VehicleImporter
                 ? DateTime.SpecifyKind(dt, DateTimeKind.Utc)
                 : DateTime.UtcNow;
 
-            var vehicle = db.Vehicles.FirstOrDefault(v => v.Id == id);
+            var vehicle = await db.Vehicles.FirstOrDefaultAsync(v => v.Id == id);
 
             // Inserting or updating user in the database.
             if (vehicle == null)
             {
                 db.Vehicles.Add(new Vehicle{
-                    Id = id,
                     LicensePlate = licensePlate,
                     Make = make,
                     Model = model,
@@ -87,7 +89,7 @@ public static class VehicleImporter
             }
         }
         // Save changes of import to the database.
-        db.SaveChanges();
+        await db.SaveChangesAsync();
         // Import Summary.
         Console.WriteLine($"Vehicle → inserted={inserted}, updated={updated}, skipped={skipped}"); 
         skipReasons.Select(reason => $"- [{reason}").ToList().ForEach(Console.WriteLine);

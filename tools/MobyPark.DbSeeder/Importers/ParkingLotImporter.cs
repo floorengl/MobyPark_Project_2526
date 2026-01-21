@@ -2,12 +2,14 @@ using System.Globalization;
 using System.Text.Json;
 using MobyPark_api.Data;
 using MobyPark_api.Data.Models;
+using Microsoft.EntityFrameworkCore;
+
 
 namespace MobyPark.DbSeeder.Importers;
 
 public static class ParkingLotImporter
 {
-    public static void Import(AppDbContext db, string basePath)
+    public static async Task ImportAsync(AppDbContext db, string basePath)
     {
         // Checking if the json file exists.
         var path = Path.Combine(basePath, "parking-lots.json");
@@ -18,7 +20,8 @@ public static class ParkingLotImporter
         }
 
         // Variables.
-        var doc = JsonDocument.Parse(File.ReadAllText(path));
+        await using var fs = File.OpenRead(path);
+        var doc = await JsonDocument.ParseAsync(fs);
         int inserted = 0, updated = 0, skipped = 0;
         var skipReasons = new List<string>();
 
@@ -58,14 +61,13 @@ public static class ParkingLotImporter
                 ? $"{v.GetProperty("lat")},{v.GetProperty("lng")}" 
                 : null;
             
-            var lot = db.ParkingLots.FirstOrDefault(p => p.Id == id);
+            var lot = await db.ParkingLots.FirstOrDefaultAsync(p => p.Id == id);
 
             // Inserting or updating parkinglot in the database.
             if (lot == null)
             {
                 db.ParkingLots.Add(new ParkingLot
                 {
-                    Id = id,
                     Name = name,
                     Location = location,
                     Address = address,
@@ -92,7 +94,7 @@ public static class ParkingLotImporter
             }
         }
         // Save changes of import to the database.
-        db.SaveChanges();
+        await db.SaveChangesAsync();
         // Import Summary.
         Console.WriteLine($"ParkingLots → inserted={inserted}, updated={updated}, skipped={skipped}");
         skipReasons.Select(reason => $"- [{reason}").ToList().ForEach(Console.WriteLine);

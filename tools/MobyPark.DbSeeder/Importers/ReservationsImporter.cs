@@ -3,12 +3,14 @@ using MobyPark_api.Data;
 using MobyPark_api.Data.Models;
 using MobyPark_api.Enums;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+
 
 namespace MobyPark.DbSeeder.Importers;
 
 public static class ReservationsImporter
 {
-    public static void Import(AppDbContext db, string basePath)
+    public static async Task ImportAsync(AppDbContext db, string basePath)
     {
         // Checking if the json file exists.
         var path = Path.Combine(basePath, "reservations.json"); 
@@ -19,7 +21,8 @@ public static class ReservationsImporter
         }
 
         // Variables.
-        var doc = JsonDocument.Parse(File.ReadAllText(path));
+        await using var fs = File.OpenRead(path);
+        var doc = await JsonDocument.ParseAsync(fs);
         int inserted = 0, updated = 0, skipped = 0;
         var skipReasons = new List<string>();
 
@@ -64,7 +67,7 @@ public static class ReservationsImporter
                 _           => ReservationStatus.Unpaid 
             };
 
-            var reservation = db.Reservations.FirstOrDefault(r => 
+            var reservation = await db.Reservations.FirstOrDefaultAsync(r => 
                 r.ParkingLotId == lotId && 
                 r.LicensePlate == actualLicensePlate && 
                 r.StartTime == startTime);
@@ -94,7 +97,7 @@ public static class ReservationsImporter
             }
         }
         // Save changes of import to the database.
-        db.SaveChanges();
+        await db.SaveChangesAsync();
         // Import Summary.
         Console.WriteLine($"Reservations → inserted={inserted}, updated={updated}, skipped={skipped}"); 
         skipReasons.Select(reason => $"- [{reason}").ToList().ForEach(Console.WriteLine); 

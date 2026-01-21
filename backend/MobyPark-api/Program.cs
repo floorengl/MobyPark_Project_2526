@@ -19,7 +19,16 @@ public class Program
 
         // EF Core (PostgreSQL)
         builder.Services.AddDbContext<AppDbContext>(opt =>
-            opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+        {
+            var cs = builder.Configuration.GetConnectionString("DefaultConnection")!;
+
+            // If NOT running inside Docker, use localhost + published port
+            if (!File.Exists("/.dockerenv"))
+                cs = cs.Replace("Host=db", "Host=localhost").Replace("Port=5432", "Port=5434");
+
+            opt.UseNpgsql(cs);
+        });
+
 
         // Services
         builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
@@ -105,20 +114,70 @@ public class Program
 
         var app = builder.Build();
 
+        // If started only for migrations, run them and exit BEFORE app.Run()
+        var isTesting = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Testing"
+                     || Environment.GetEnvironmentVariable("IsXUnitTesting") == "True";
+
+        if (!isTesting)
+        {
+            using (var scope = app.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                var logger = services.GetRequiredService<ILogger<Program>>();
+                var db = services.GetRequiredService<AppDbContext>();
+
+                for (int i = 0; i < 5; i++)
+                {
+                    try
+                    {
+                        logger.LogInformation("Attempting to run migrations...");
+                        db.Database.Migrate();
+                        logger.LogInformation("Migrations applied successfully.");
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogWarning($"Migration attempt {i + 1} failed: {ex.Message}");
+                        if (i == 4) throw;
+                        Thread.Sleep(3000);
+                    }
+                }
+            }
+        }
+
         app.UseSwagger();
         app.UseSwaggerUI();
-        // app.UseHttpsRedirection(); // comment for http local tests
+        // Conditionally enable HTTPS redirection
+        var useHttps = string.Equals(
+            Environment.GetEnvironmentVariable("USE_HTTPS"),
+            "true",
+            StringComparison.OrdinalIgnoreCase);
+
+        if (useHttps)
+        {
+            app.UseHttpsRedirection();
+        }
+
         app.UseAuthentication();
         app.UseAuthorization();
         app.MapControllers();
 
         // Auto-apply migrations.
-        // using (var scope = app.Services.CreateScope())
-        // {
-        //     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        //     if (Environment.GetEnvironmentVariable("IsXUnitTesting") != "True")
-        //         db.Database.Migrate();
-        // }
+        using (var scope = app.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            //if (Environment.GetEnvironmentVariable("IsXUnitTesting") != "True")
+            //    db.Database.Migrate();
+
+            if (!db.Users.Any(u => u.Username == "InitialAdmin"))
+            {
+                var hasher = new PasswordHasher<User>();
+                var user = new User { Username = "InitialAdmin", Role = "ADMIN", Active = true };
+                user.Password = hasher.HashPassword(user, "InitialAdminPassword");
+                db.Users.Add(user);
+                db.SaveChanges();
+            }
+        }
 
         app.Run();
     }
