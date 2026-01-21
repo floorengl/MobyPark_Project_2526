@@ -7,7 +7,7 @@
         public string? Make { get; init; }
         public string? Model { get; init; }
         public string? Color { get; init; }
-        public DateTime? Year { get; init; }
+        public DateTimeOffset? Year { get; init; }
         public long UserId { get; init; }
         public DateTimeOffset CreatedAt { get; init; }
     }

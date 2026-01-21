@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens.Experimental;
@@ -23,7 +24,7 @@ namespace MobyPark_api.Controllers
         [ProducesResponseType(typeof(IEnumerable<VehicleDto>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<VehicleDto>>> GetUserVehiclesAsync()
         {
-            var userId = long.Parse(User.FindFirst("id")?.Value ?? "0");
+            var userId = long.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var vehicles = await _vh.GetUserVehiclesAsync(userId);
             return Ok(vehicles);
         }
@@ -53,7 +54,7 @@ namespace MobyPark_api.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<VehicleDto?>> GetByIdAsync(long id)
         {
-            var userId = long.Parse(User.FindFirst("id")?.Value ?? "0");
+            var userId = long.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var vehicle = await _vh.GetByIdAsync(id, userId);
             if (vehicle is null) return NotFound();
             return Ok(vehicle);
@@ -69,11 +70,13 @@ namespace MobyPark_api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<VehicleDto>> CreateAsync([FromBody] VehicleDto dto)
         {
-            var userId = long.Parse(User.FindFirst("id")?.Value ?? "0");
+            var userId = long.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var created = await _vh.CreateAsync(dto, userId);
-            if (created is null) 
+            if (created is null)
                 return StatusCode(422, "license plate already exists");
-            return CreatedAtAction(nameof(GetByIdAsync), new { id = created.Id }, created);
+
+            // Use direct URL to avoid routing errors
+            return Created($"/vehicles/{created.Id}", created);
         }
 
         /// <summary>
@@ -87,7 +90,7 @@ namespace MobyPark_api.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<VehicleDto>> UpdateAsync(long id, [FromBody] VehicleDto dto)
         {
-            var userId = long.Parse(User.FindFirst("id")?.Value ?? "0");
+            var userId = long.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var updated = await _vh.UpdateAsync(id, dto, userId);
             if (updated is null) return NotFound();
             return Ok(updated);
@@ -102,7 +105,7 @@ namespace MobyPark_api.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteAsync(long id)
         {
-            var userId = long.Parse(User.FindFirst("id")?.Value ?? "0");
+            var userId = long.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var deleted = await _vh.DeleteAsync(id, userId);
             if (!deleted) return NotFound();
             return NoContent();
