@@ -134,27 +134,4 @@ public sealed class SessionService : ISessionService
 
         await _paymentService.AddPaymentAsync(paymentDto, ct);
     }
-
-    //private static int CalculateChargeableMinutes(
-    //    DateTime sessionStart,
-    //    DateTime sessionEnd,
-    //    IEnumerable<Reservation> reservations)
-    //{
-    //    var chargeableMinutes =
-    //        (int)Math.Ceiling((sessionEnd - sessionStart).TotalMinutes);
-
-    //    foreach (var r in reservations)
-    //    {
-    //        // Find overlap between session and reservation
-    //        var overlapStart = sessionStart > r.StartTime ? sessionStart : r.StartTime;
-    //        var overlapEnd = sessionEnd < r.EndTime ? sessionEnd : r.EndTime;
-
-    //        if (overlapEnd > overlapStart)
-    //        {
-    //            chargeableMinutes -=
-    //                (int)Math.Ceiling((overlapEnd - overlapStart).TotalMinutes);
-    //        }
-    //    }
-    //    return Math.Max(0, chargeableMinutes);
-    //}
 }
